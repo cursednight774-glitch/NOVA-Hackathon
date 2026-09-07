@@ -1,3 +1,5 @@
+import { supabase } from './supabaseClient.js'
+
 // ============================================================
 //  src/api.js  —  THE ONLY FILE THAT KNOWS WHERE DATA COMES FROM.
 //
@@ -19,7 +21,7 @@
 //
 //    Flip this ONE line when login is built. Nothing else changes.
 // ------------------------------------------------------------
-export const DEMO_MODE = true
+export const DEMO_MODE = false
 
 export let ME = DEMO_MODE ? 3 : null
 
@@ -186,6 +188,49 @@ function j(personId, checkedInHoursAgo) {
 }
 
 // ------------------------------------------------------------
+// 4b. SUPABASE HELPERS  — used by every swapped function
+// ------------------------------------------------------------
+
+// While you're mid-swap, some functions read Supabase and some still read
+// the fake arrays. `person()` checks the cache first, then falls back to
+// the fake `people` array. Delete the fallback once everything is swapped.
+let cache = {}
+function person(id) { return cache[id] || people.find(p => p.id === id) }
+
+/** Fetch any profiles we don't already have, once. */
+async function loadPeople(ids) {
+  const missing = [...new Set(ids)].filter(id => id && !cache[id])
+  if (!missing.length) return
+  const { data } = await supabase.from('profiles').select('*').in('id', missing)
+  ;(data || []).forEach(p => { cache[p.id] = p })
+}
+
+/** THE TRANSLATOR: database snake_case -> screen camelCase.
+ *  This function existing is why your teammate never has to know
+ *  the database exists. */
+function fromRow(a, joinRows = []) {
+  return {
+    id: a.id,
+    hostId: a.host_id,
+    title: a.title,
+    category: a.category,
+    startsAt: new Date(a.starts_at),
+    endsAt: new Date(a.ends_at),
+    venue: a.venue,
+    meetingPoint: a.meeting_point,
+    capacity: a.capacity,
+    strictLimit: a.strict_limit,
+    cancelled: a.cancelled,
+    reviewed: a.reviewed,
+    joins: joinRows.map(j => ({
+      personId: j.profile_id,
+      checkedIn: j.checked_in_at ? new Date(j.checked_in_at) : null,
+      flaggedAbsent: j.flagged_absent,
+    })),
+  }
+}
+
+// ------------------------------------------------------------
 // 5. RULES  — used by both the UI and (later) the database layer.
 // ------------------------------------------------------------
 
@@ -217,8 +262,8 @@ function decorate(a) {
   const joined = a.joins.length
   return {
     ...a,
-    host:    people.find(p => p.id === a.hostId),
-    going:   a.joins.map(x => ({ ...people.find(p => p.id === x.personId), join: x })),
+    host:    person(a.hostId),
+    going:   a.joins.map(x => ({ ...person(x.personId), join: x })),
     joined,                                   // real number of people coming
     capacity: a.capacity,                     // the host's number — what everyone sees
     seats:    seatLimit(a),                   // internal, includes the buffer
@@ -230,19 +275,36 @@ function decorate(a) {
 }
 
 export async function getActivities({ category } = {}) {
-  const now = new Date()
-  return activities
-    .filter(a => !a.cancelled)
-    .filter(a => new Date(a.endsAt.getTime() + 10 * 60 * 1000) > now)   // still live
-    .filter(a => !category || a.category === category)
-    .sort((x, y) => x.startsAt - y.startsAt)
-    .slice(0, 15)
-    .map(decorate)
+  const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString()
+
+  let q = supabase.from('activities').select('*')
+    .eq('cancelled', false)
+    .gt('ends_at', cutoff)
+    .order('starts_at', { ascending: true })
+    .limit(15)
+  if (category) q = q.eq('category', category)
+
+  const { data: acts, error } = await q
+  if (error) { console.error(error); return [] }
+  if (!acts.length) return []
+
+  const { data: joins } = await supabase.from('joins').select('*')
+    .in('activity_id', acts.map(a => a.id))
+
+  await loadPeople([...acts.map(a => a.host_id), ...(joins || []).map(j => j.profile_id)])
+
+  return acts.map(a =>
+    decorate(fromRow(a, (joins || []).filter(j => j.activity_id === a.id))))
 }
 
 export async function getActivity(id) {
-  const a = activities.find(x => x.id === Number(id))
-  return a ? decorate(a) : null
+  const { data: a, error } = await supabase.from('activities')
+    .select('*').eq('id', id).single()
+  if (error || !a) return null
+
+  const { data: joins } = await supabase.from('joins').select('*').eq('activity_id', a.id)
+  await loadPeople([a.host_id, ...(joins || []).map(j => j.profile_id)])
+  return decorate(fromRow(a, joins || []))
 }
 
 export async function getProfile(id) {
@@ -331,17 +393,23 @@ export async function getDisputes(personId = ME) {
 // ------------------------------------------------------------
 
 export async function createActivity(fields) {
-  const a = {
-    id: nextId++,
-    hostId: ME,
-    cancelled: false,
-    strictLimit: false,
-    category: categoryOf(fields.title),
-    joins: [{ personId: ME, checkedIn: null, flaggedAbsent: false }], // host auto-joins
-    ...fields,
-  }
-  activities.push(a)
-  return decorate(a)
+  const { data, error } = await supabase.from('activities').insert({
+    host_id:       ME,
+    title:         fields.title,
+    category:      fields.category,
+    venue:         fields.venue,
+    meeting_point: fields.meetingPoint,
+    starts_at:     fields.startsAt.toISOString(),
+    ends_at:       fields.endsAt.toISOString(),
+    capacity:      fields.capacity,
+    strict_limit:  fields.strictLimit,
+  }).select().single()
+
+  if (error) { console.error(error); return { error: 'Could not post it. Try again.' } }
+
+  // the host is automatically going to their own activity
+  await supabase.from('joins').insert({ activity_id: data.id, profile_id: ME })
+  return getActivity(data.id)
 }
 
 export async function joinActivity(id) {

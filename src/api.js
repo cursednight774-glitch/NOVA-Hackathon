@@ -308,27 +308,48 @@ export async function getActivity(id) {
 }
 
 export async function getProfile(id) {
-  const p = people.find(x => x.id === Number(id))
-  if (!p) return null
-  return { ...p, record: await getRecord(p.id), isMe: p.id === ME }
+  if (!id) return null
+
+  let p = cache[id]
+  if (!p) {
+    const { data } = await supabase.from('profiles').select('*').eq('id', id).single()
+    if (!data) return null
+    cache[id] = data
+    p = data
+  }
+
+  return {
+    ...p,
+    avatar: p.avatar_url,                                          // db name -> screen name
+    interests: p.interests || { studies: [], sports: [], hobbies: [] },
+    record: await getRecord(id),
+    isMe: id === ME,
+  }
 }
 
 /** THE RECORD. Always computed, never stored — so it can't drift.
  *  Rolling last 10 finished activities. Hidden under 3. */
 export async function getRecord(personId) {
-  const id = Number(personId)
-  const now = new Date()
-  const finished = activities
-    .filter(a => !a.cancelled && a.endsAt < now)
-    .filter(a => a.joins.some(x => x.personId === id))
-    .sort((x, y) => x.endsAt - y.endsAt)
-    .slice(-10)
+  if (!personId) return { newHere: true, of: 0 }
 
+  const { data: joins } = await supabase.from('joins')
+    .select('activity_id, checked_in_at, flagged_absent')
+    .eq('profile_id', personId)
+  if (!joins || !joins.length) return { newHere: true, of: 0 }
+
+  const { data: acts } = await supabase.from('activities')
+    .select('id, ends_at')
+    .in('id', joins.map(j => j.activity_id))
+    .eq('cancelled', false)
+    .lt('ends_at', new Date().toISOString())
+    .order('ends_at', { ascending: true })
+
+  const finished = (acts || []).slice(-10)
   if (finished.length < 3) return { newHere: true, of: finished.length }
 
   const pips = finished.map(a => {
-    const mine = a.joins.find(x => x.personId === id)
-    return Boolean(mine.checkedIn && !mine.flaggedAbsent)
+    const j = joins.find(x => x.activity_id === a.id)
+    return Boolean(j.checked_in_at && !j.flagged_absent)
   })
   return { newHere: false, showed: pips.filter(Boolean).length, of: pips.length, pips }
 }
@@ -360,7 +381,7 @@ export async function getStubs(personId = ME) {
 }
 
 function stub(a, personId) {
-  const me = people.find(p => p.id === personId)
+  const me = person(personId)
   return {
     id: a.id,
     title: a.title,

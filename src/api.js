@@ -9,8 +9,31 @@
 //  Rule: if a screen imports `supabase`, something has gone wrong.
 // ============================================================
 
-// Pretend this person is logged in until real login exists.
-export const ME = 3
+// ------------------------------------------------------------
+// 0. WHO IS LOGGED IN
+//
+//    DEMO_MODE = true   → pretend person 3 is signed in. Fake data.
+//                         Works with no Supabase and no auth.js.
+//    DEMO_MODE = false  → real login. Needs src/auth.js to exist and
+//                         someone to have signed up.
+//
+//    Flip this ONE line when login is built. Nothing else changes.
+// ------------------------------------------------------------
+export const DEMO_MODE = true
+
+export let ME = DEMO_MODE ? 3 : null
+
+/** Work out who is signed in. main.jsx calls this ONCE before rendering —
+ *  if it doesn't, every screen loads thinking you're a stranger. */
+export async function loadMe() {
+  if (DEMO_MODE) return people.find(p => p.id === ME)
+  // imported here, not at the top, so this file still works before
+  // auth.js exists
+  const { getMe } = await import("./auth.js")
+  const me = await getMe()
+  ME = me?.id ?? null
+  return me
+}
 
 // ------------------------------------------------------------
 // 1. THE VENUE LIST

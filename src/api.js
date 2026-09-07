@@ -60,6 +60,12 @@ export const VENUES = [
   "Volleyball court",
 ]
 
+export async function getVenues() {
+  const { data, error } = await supabase.from('venues').select('name').order('name')
+  if (error || !data) { console.error(error); return VENUES }   // fall back to the array
+  return data.map(v => v.name)
+}
+
 // ------------------------------------------------------------
 // 2. THE INTEREST LIBRARY  — three groups, searchable, extendable.
 // ------------------------------------------------------------
@@ -230,6 +236,24 @@ function fromRow(a, joinRows = []) {
   }
 }
 
+/** Takes raw activity rows, fetches their joins + people, returns
+ *  fully decorated activities. Every list query uses this. */
+async function hydrate(acts) {
+  if (!acts || !acts.length) return []
+  const { data: joins } = await supabase.from('joins').select('*')
+    .in('activity_id', acts.map(a => a.id))
+  await loadPeople([...acts.map(a => a.host_id), ...(joins || []).map(j => j.profile_id)])
+  return acts.map(a =>
+    decorate(fromRow(a, (joins || []).filter(j => j.activity_id === a.id))))
+}
+
+/** Stub serial numbers — activity id mixed with the person's uuid,
+ *  so two people at the same event get different numbers. */
+function serialFor(activityId, personId) {
+  const n = String(personId).split('').reduce((s, c) => s + c.charCodeAt(0), 0)
+  return String((activityId * 137 + n) % 10000).padStart(4, '0')
+}
+
 // ------------------------------------------------------------
 // 5. RULES  — used by both the UI and (later) the database layer.
 // ------------------------------------------------------------
@@ -276,7 +300,6 @@ function decorate(a) {
 
 export async function getActivities({ category } = {}) {
   const cutoff = new Date(Date.now() - 10 * 60 * 1000).toISOString()
-
   let q = supabase.from('activities').select('*')
     .eq('cancelled', false)
     .gt('ends_at', cutoff)
@@ -286,25 +309,15 @@ export async function getActivities({ category } = {}) {
 
   const { data: acts, error } = await q
   if (error) { console.error(error); return [] }
-  if (!acts.length) return []
-
-  const { data: joins } = await supabase.from('joins').select('*')
-    .in('activity_id', acts.map(a => a.id))
-
-  await loadPeople([...acts.map(a => a.host_id), ...(joins || []).map(j => j.profile_id)])
-
-  return acts.map(a =>
-    decorate(fromRow(a, (joins || []).filter(j => j.activity_id === a.id))))
+  return hydrate(acts)
 }
 
 export async function getActivity(id) {
   const { data: a, error } = await supabase.from('activities')
     .select('*').eq('id', id).single()
   if (error || !a) return null
-
-  const { data: joins } = await supabase.from('joins').select('*').eq('activity_id', a.id)
-  await loadPeople([a.host_id, ...(joins || []).map(j => j.profile_id)])
-  return decorate(fromRow(a, joins || []))
+  const [one] = await hydrate([a])
+  return one ?? null
 }
 
 export async function getProfile(id) {
@@ -356,27 +369,45 @@ export async function getRecord(personId) {
 
 /** Everything within the next hour — the "starting soon" strip. */
 export async function getStartingSoon() {
-  const now = new Date(), hour = new Date(Date.now() + 3600 * 1000)
-  return activities
-    .filter(a => !a.cancelled && a.startsAt > now && a.startsAt < hour)
-    .sort((x, y) => x.startsAt - y.startsAt)
-    .map(decorate)
+  const { data: acts } = await supabase.from('activities').select('*')
+    .eq('cancelled', false)
+    .gt('starts_at', new Date().toISOString())
+    .lt('starts_at', new Date(Date.now() + 3600 * 1000).toISOString())
+    .order('starts_at', { ascending: true })
+  return hydrate(acts)
 }
 
 /** A stub exists ONLY if you checked in and weren't flagged.
  *  available = checked in within the last 24h. collected = older. */
 export async function getStubs(personId = ME) {
-  const id = Number(personId)
-  const cutoff = new Date(Date.now() - 24 * 3600 * 1000)
-  const mine = activities
-    .filter(a => !a.cancelled && a.endsAt < new Date())
-    .map(a => ({ a, join: a.joins.find(x => x.personId === id) }))
-    .filter(x => x.join && x.join.checkedIn && !x.join.flaggedAbsent)
-    .sort((x, y) => y.a.endsAt - x.a.endsAt)
+  const empty = { available: [], collected: [] }
+  if (!personId) return empty
+
+  // only rows where you actually checked in and weren't flagged
+  const { data: mine } = await supabase.from('joins')
+    .select('activity_id, checked_in_at, flagged_absent')
+    .eq('profile_id', personId)
+    .not('checked_in_at', 'is', null)
+  const good = (mine || []).filter(j => !j.flagged_absent)
+  if (!good.length) return empty
+
+  const { data: acts } = await supabase.from('activities').select('*')
+    .in('id', good.map(j => j.activity_id))
+    .eq('cancelled', false)
+    .lt('ends_at', new Date().toISOString())
+    .order('ends_at', { ascending: false })
+  if (!acts || !acts.length) return empty
+
+  const { data: allJoins } = await supabase.from('joins').select('*')
+    .in('activity_id', acts.map(a => a.id))
+  await loadPeople([personId, ...(allJoins || []).map(j => j.profile_id)])
+
+  const cutoff = Date.now() - 24 * 3600 * 1000
+  const make = a => stub(fromRow(a, (allJoins || []).filter(j => j.activity_id === a.id)), personId)
 
   return {
-    available: mine.filter(x => x.a.endsAt >= cutoff).map(x => stub(x.a, id)),
-    collected: mine.filter(x => x.a.endsAt <  cutoff).map(x => stub(x.a, id)),
+    available: acts.filter(a => new Date(a.ends_at).getTime() >= cutoff).map(make),
+    collected: acts.filter(a => new Date(a.ends_at).getTime() <  cutoff).map(make),
   }
 }
 
@@ -388,25 +419,27 @@ function stub(a, personId) {
     category: a.category,
     venue: a.venue,
     date: a.endsAt,
-    username: me.username,
+    username: me?.username || 'you',
     turnedUp: a.joins
       .filter(x => x.checkedIn && !x.flaggedAbsent)
-      .map(x => people.find(p => p.id === x.personId))
+      .map(x => person(x.personId))
       .filter(Boolean),
-    serial: String(a.id * 37 + personId).padStart(4, "0"),
+    serial: serialFor(a.id, personId),
   }
 }
 
 /** Finished activities I hosted that I haven't reviewed yet.
  *  Auto-expires after 48h — after that everyone is simply accepted. */
 export async function getDisputes(personId = ME) {
-  const id = Number(personId), now = new Date()
-  return activities
-    .filter(a => a.hostId === id && !a.cancelled && a.endsAt < now)
-    .filter(a => now - a.endsAt < 48 * 3600 * 1000)
-    .filter(a => !a.reviewed)
-    .sort((x, y) => y.endsAt - x.endsAt)
-    .map(decorate)
+  if (!personId) return []
+  const { data: acts } = await supabase.from('activities').select('*')
+    .eq('host_id', personId)
+    .eq('cancelled', false)
+    .eq('reviewed', false)
+    .lt('ends_at', new Date().toISOString())
+    .gt('ends_at', new Date(Date.now() - 48 * 3600 * 1000).toISOString())
+    .order('ends_at', { ascending: false })
+  return hydrate(acts)
 }
 
 // ------------------------------------------------------------
@@ -472,26 +505,42 @@ export async function checkIn(id) {
 }
 
 export async function cancelActivity(id) {
-  const a = activities.find(x => x.id === Number(id))
+  const a = await getActivity(id)
   if (!a) return { error: "Activity not found" }
   if (a.hostId !== ME) return { error: "Only the host can cancel" }
-  a.cancelled = true
-  return decorate(a)
+  const { error } = await supabase.from('activities').update({ cancelled: true }).eq('id', id)
+  if (error) { console.error(error); return { error: "Could not cancel. Try again." } }
+  return getActivity(id)
 }
 
 /** Host review. absentIds = the people who did NOT show up.
  *  Default is trust: anyone not in this list stays counted as present. */
 export async function submitDispute(activityId, absentIds = []) {
-  const a = activities.find(x => x.id === Number(activityId))
+  const a = await getActivity(activityId)
   if (!a) return { error: "Activity not found" }
   if (a.hostId !== ME) return { error: "Only the host can review this" }
-  a.joins.forEach(x => { x.flaggedAbsent = absentIds.includes(x.personId) })
-  a.reviewed = true
-  return decorate(a)
+
+  // reset everyone to present, then flag only the named ones
+  await supabase.from('joins').update({ flagged_absent: false }).eq('activity_id', activityId)
+  if (absentIds.length) {
+    await supabase.from('joins').update({ flagged_absent: true })
+      .eq('activity_id', activityId).in('profile_id', absentIds)
+  }
+  await supabase.from('activities').update({ reviewed: true }).eq('id', activityId)
+  return getActivity(activityId)
 }
 
 export async function updateProfile(fields) {
-  const p = people.find(x => x.id === ME)
-  Object.assign(p, fields)
-  return { ...p }
+  if (!ME) return { error: "Not signed in" }
+  const row = {}
+  if (fields.avatar    !== undefined) row.avatar_url = fields.avatar
+  if (fields.course    !== undefined) row.course     = fields.course
+  if (fields.year      !== undefined) row.year       = fields.year
+  if (fields.interests !== undefined) row.interests  = fields.interests
+
+  const { data, error } = await supabase.from('profiles')
+    .update(row).eq('id', ME).select().single()
+  if (error) { console.error(error); return { error: "Could not save. Try again." } }
+  cache[ME] = data
+  return data
 }

@@ -413,32 +413,41 @@ export async function createActivity(fields) {
 }
 
 export async function joinActivity(id) {
-  const a = activities.find(x => x.id === Number(id))
+  const a = await getActivity(id)
   if (!a) return { error: "Activity not found" }
-  if (a.joins.some(x => x.personId === ME)) return { error: "You've already joined" }
-  if (a.joins.length >= seatLimit(a))       return { error: "This one's full" }
-  a.joins.push({ personId: ME, checkedIn: null, flaggedAbsent: false })
-  return decorate(a)
+  if (a.iJoined) return { error: "You've already joined" }
+  if (a.joined >= seatLimit(a)) return { error: "This one's full" }
+
+  const { error } = await supabase.from('joins')
+    .insert({ activity_id: id, profile_id: ME })
+  if (error) { console.error(error); return { error: "Could not join. Try again." } }
+  return getActivity(id)
 }
 
 export async function leaveActivity(id) {
-  const a = activities.find(x => x.id === Number(id))
+  const a = await getActivity(id)
   if (!a) return { error: "Activity not found" }
   if (!canLeaveFreely(a)) return { error: "Too late to leave without a no-show" }
-  a.joins = a.joins.filter(x => x.personId !== ME)
-  return decorate(a)
+
+  const { error } = await supabase.from('joins').delete()
+    .eq('activity_id', id).eq('profile_id', ME)
+  if (error) { console.error(error); return { error: "Could not leave. Try again." } }
+  return getActivity(id)
 }
 
 export async function checkIn(id) {
-  const a = activities.find(x => x.id === Number(id))
+  const a = await getActivity(id)
   if (!a) return { error: "Activity not found" }
   const phase = phaseOf(a)
   if (phase === "before") return { error: "Check-in opens 10 minutes before the start" }
   if (phase === "closed") return { error: "The check-in window has closed" }
-  const mine = a.joins.find(x => x.personId === ME)
-  if (!mine) return { error: "You haven't joined this" }
-  mine.checkedIn = new Date()
-  return decorate(a)
+  if (!a.iJoined) return { error: "You haven't joined this" }
+
+  const { error } = await supabase.from('joins')
+    .update({ checked_in_at: new Date().toISOString() })
+    .eq('activity_id', id).eq('profile_id', ME)
+  if (error) { console.error(error); return { error: "Could not check in. Try again." } }
+  return getActivity(id)
 }
 
 export async function cancelActivity(id) {

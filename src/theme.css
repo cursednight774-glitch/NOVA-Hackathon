@@ -5,24 +5,24 @@
    ============================================================ */
 
 :root {
-  --ground:      #F4F4F7;
+  --ground:      #F8F9FD;
   --surface:     #FFFFFF;
   --surface-2:   #ECECF1;
-  --ink:         #17171F;
-  --ink-2:       #4A4A58;
-  --ink-3:       #7C7C8C;
-  --line:        #DCDCE4;
-  --line-strong: #BFBFCC;
+  --ink:         #171626;
+  --ink-2:       #17162F;
+  --ink-3:       #7A778F;
+  --line:        #D2D1E4;
+  --line-strong: #ADABC0;
 
-  --brand:       #C7264F;
-  --brand-soft:  #FBE7EC;
-  --study:       #1C6F8B;
+  --brand:       #9BA707;
+  --brand-soft:  #EEF3FF;
+  --study:       #9471EA;
   --study-soft:  #E1EFF4;
-  --social:      #9A5B0A;
+  --social:      #8A6743;
   --social-soft: #F7EBDA;
-  --ok:          #1F7A4D;
+  --ok:          #D0828A;
   --ok-soft:     #E2F1E9;
-  --warn:        #B4531B;
+  --warn:        #C93B4E;
   --warn-soft:   #FBEADD;
 
   --r:      12px;
@@ -36,24 +36,24 @@
 /* Dark mode: SAME NAMES, different numbers. Nothing else changes. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --ground:      #131318;
-    --surface:     #1C1C23;
+    --ground:      #19182B;
+    --surface:     #1F1F33;
     --surface-2:   #24242D;
-    --ink:         #EDEDF3;
-    --ink-2:       #B4B4C2;
-    --ink-3:       #85859A;
-    --line:        #32323E;
-    --line-strong: #464655;
+    --ink:         #EBEAED;
+    --ink-2:       #DCD7E4;
+    --ink-3:       #C5BED3;
+    --line:        #B5B1C4;
+    --line-strong: #767287;
 
-    --brand:       #FF7C9C;
-    --brand-soft:  #3A1A25;
-    --study:       #6FC4E0;
+    --brand:       #91A7FF;
+    --brand-soft:  #2C3652;
+    --study:       #417C7E;
     --study-soft:  #12303B;
-    --social:      #E0A055;
+    --social:      #A4876B;
     --social-soft: #38260F;
-    --ok:          #63C795;
+    --ok:          #9576E3;
     --ok-soft:     #142E22;
-    --warn:        #F09A63;
+    --warn:        #E18B9B;
     --warn-soft:   #3A2114;
 
     --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);

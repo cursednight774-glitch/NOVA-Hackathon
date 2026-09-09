@@ -5,6 +5,7 @@ import { useParams, Link, useNavigate } from "react-router-dom"
 import { getProfile, getActivities, getDisputes, ME } from "../api.js"
 import { AppBar, BackIcon, Avatar, RecordBlock } from "../components.jsx"
 import { YEARS, whenLine } from "../format.js"
+import { signOut } from "../auth.js"
 
 export default function Profile() {
   const { id } = useParams()
@@ -37,10 +38,21 @@ export default function Profile() {
   return (
     <>
       <AppBar
-        title="Profile"
-        left={<BackIcon />}
-        right={p.isMe ? <Link className="icon" to="/edit">✎</Link> : undefined}
-      />
+  title="Profile"
+  left={<BackIcon />}
+  right={p.isMe ? (
+    <span style={{ display: "flex", gap: 10, alignItems: "center" }}>
+      <Link className="icon" to="/edit">✎</Link>
+      <button
+        className="icon"
+        onClick={async () => { await signOut(); window.location.href = "/" }}
+        style={{ fontSize: 13, fontWeight: 700, width: "auto", padding: "0 8px" }}
+      >
+        Sign out
+      </button>
+    </span>
+  ) : undefined}
+/>
       <div className="page">
 
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>

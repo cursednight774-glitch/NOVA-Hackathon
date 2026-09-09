@@ -1,6 +1,6 @@
-// src/App.jsx — every route in the app. Six screens plus edit.
-
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
+import { ME } from "./api.js"
+import Login       from "./screens/Login.jsx"
 import Home        from "./screens/Home.jsx"
 import Activity    from "./screens/Activity.jsx"
 import Profile     from "./screens/Profile.jsx"
@@ -10,6 +10,9 @@ import Disputes    from "./screens/Disputes.jsx"
 import EditProfile from "./screens/EditProfile.jsx"
 
 export default function App() {
+  // main.jsx runs loadMe() before rendering, so ME is already settled here.
+  if (!ME) return <Login />
+
   return (
     <BrowserRouter>
       <div className="app">

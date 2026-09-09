@@ -19,7 +19,7 @@
 //
 //    Flip this ONE line when login is built. Nothing else changes.
 // ------------------------------------------------------------
-export const DEMO_MODE = true
+export const DEMO_MODE = false
 
 export let ME = DEMO_MODE ? 3 : null
 

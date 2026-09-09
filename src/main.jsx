@@ -3,7 +3,7 @@
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./theme.css"
-import "./app.css"
+import "./App.css"
 import App from "./App.jsx"
 import { loadMe } from "./api.js"
 

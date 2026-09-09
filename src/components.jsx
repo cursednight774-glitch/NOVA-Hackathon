@@ -1,10 +1,9 @@
-// src/components.jsx the nine pieces every screen is built from.
+// src/components.jsx — the nine pieces every screen is built from.
+
 import { Link, useNavigate } from "react-router-dom"
 import { avatarColor, whenLine, time, YEARS } from "./format.js"
 
-/*
-1. Avatar  
-*/
+/* ---------- 1. Avatar ---------- */
 export function Avatar({ person, size = "" }) {
   if (!person) return <span className={`av ${size}`} />
   if (person.avatar) {
@@ -17,18 +16,14 @@ export function Avatar({ person, size = "" }) {
   )
 }
 
-/*
-2. Record chip (the small xx/10)
-*/
+/* ---------- 2. Record chip (the small xx/10) ---------- */
 export function RecordChip({ record }) {
   if (!record) return null
   if (record.newHere) return <span className="recchip new">New</span>
   return <span className="recchip">{record.showed}/{record.of}</span>
 }
 
-/*
-3. Record block (profile hero)
-*/
+/* ---------- 3. Record block (profile hero) ---------- */
 export function RecordBlock({ record }) {
   if (!record || record.newHere) {
     return (
@@ -44,14 +39,12 @@ export function RecordBlock({ record }) {
       <div className="pips">
         {record.pips.map((ok, i) => <i key={i} className={ok ? "" : "miss"} />)}
       </div>
-      <div className="lab">Showed up last {record.of} activities</div>
+      <div className="lab">Showed up · last {record.of} activities</div>
     </div>
   )
 }
 
-/*
-4. Person row
-*/
+/* ---------- 4. Person row ---------- */
 export function PersonRow({ person, record, right, onClick, sub }) {
   const nav = useNavigate()
   const go = onClick || (() => nav(`/p/${person.id}`))
@@ -61,16 +54,14 @@ export function PersonRow({ person, record, right, onClick, sub }) {
       <span>
         <span className="nm">{person.name}</span>
         <br />
-        <span className="yr">{sub ?? `${person.course} ${YEARS[person.year]?.slice(0, 8)}`}</span>
+        <span className="yr">{sub ?? `${person.course} · ${YEARS[person.year]?.slice(0, 8)}`}</span>
       </span>
       <span className="right">{right ?? <RecordChip record={record} />}</span>
     </button>
   )
 }
 
-/*
-5. Host line (sits ABOVE the poster)
-*/
+/* ---------- 5. Host line (sits ABOVE the poster) ---------- */
 export function HostLine({ host, record }) {
   if (!host) return null
   return (
@@ -83,22 +74,20 @@ export function HostLine({ host, record }) {
   )
 }
 
-/*
-6. Poster card
-*/
+/* ---------- 6. Poster card ---------- */
 export function Poster({ activity, wide = false, showJoin = false, onJoin, onOpen }) {
   const a = activity
   return (
     <div className={`poster ${wide ? "wide" : ""}`} onClick={onOpen}>
       {/* background: a category image when we have one, gradient otherwise */}
       <div className={`bg ${a.category}`}
-        style={a.image ? { backgroundImage: `url(${a.image})` } : undefined} />
+           style={a.image ? { backgroundImage: `url(${a.image})` } : undefined} />
       <div className="scrim" />
       <div className="top">
         <span className="cat">{a.category}</span>
         {a.joined != null && (
           <span className="cnt">
-            {a.joined >= a.capacity ? `${a.joined}/${a.capacity}` : `${a.joined} going`}
+            {a.joined <= a.capacity ? `${a.joined}/${a.capacity}` : `${a.joined} going`}
           </span>
         )}
       </div>
@@ -118,9 +107,7 @@ export function Poster({ activity, wide = false, showJoin = false, onJoin, onOpe
   )
 }
 
-/*
-7. App bar
-*/
+/* ---------- 7. App bar ---------- */
 export function AppBar({ title, sub, left, right }) {
   return (
     <div className="appbar">
@@ -136,13 +123,13 @@ export function AppBar({ title, sub, left, right }) {
 
 export function BackIcon() {
   const nav = useNavigate()
-  return <button className="icon" onClick={() => nav(-1)}>&lt;</button>
+  return <button className="icon" onClick={() => nav(-1)}>‹</button>
 }
 
 export function ProfileIcon({ me }) {
   return (
     <Link className="icon" to={`/p/${me?.id ?? ""}`}>
-      {me?.avatar ? <img src={me.avatar} alt="" /> : (me?.name?.[0] ?? ".")}
+      {me?.avatar ? <img src={me.avatar} alt="" /> : (me?.name?.[0] ?? "·")}
     </Link>
   )
 }
@@ -151,9 +138,7 @@ export function AddIcon() {
   return <Link className="icon brand" to="/host">+</Link>
 }
 
-/*
-8. Empty state 
-*/
+/* ---------- 8. Empty state ---------- */
 export function Empty({ children }) {
   return (
     <div className="empty">
@@ -163,9 +148,7 @@ export function Empty({ children }) {
   )
 }
 
-/*
-9. Share stub (9:16 export card)
-*/
+/* ---------- 9. Share stub (9:16 export card) ---------- */
 export function ShareStub({ stub, innerRef }) {
   return (
     <div className={`stub ${stub.category}`} ref={innerRef}>
@@ -184,7 +167,8 @@ export function ShareStub({ stub, innerRef }) {
           {stub.turnedUp.slice(0, 6).map(p => <i key={p.id} />)}
         </div>
         <div className="names">
-          {stub.turnedUp.map(p => p.username === stub.username ? "you" : p.name.split(" ")[0]).join(" · ")}
+          {stub.turnedUp.map(p => p.username === stub.username ? "you" : p.name.split(" ")[0])
+            .join(" · ")}
         </div>
         <div className="mine"><span>Collected by</span>@{stub.username}</div>
         <div className="code" />

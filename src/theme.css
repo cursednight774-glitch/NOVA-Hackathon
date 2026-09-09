@@ -1,45 +1,66 @@
+/* ============================================================
+   src/theme.css  —  THE PALETTE
+   This is the only file you edit to reskin the whole app.
+   No other file is allowed to contain a hex colour.
+   ============================================================ */
+
 :root {
-  /* Ground & Surfaces */
-  --ground: #0f172a;
-  --surface: #1e293b;
-  --surface-hover: #334155;
-  --surface-border: #334155;
-  --surface-card: #1e293b;
-  --overlay: rgba(15, 23, 42, 0.8);
+  --ground:      #F4F4F7;
+  --surface:     #FFFFFF;
+  --surface-2:   #ECECF1;
+  --ink:         #17171F;
+  --ink-2:       #4A4A58;
+  --ink-3:       #7C7C8C;
+  --line:        #DCDCE4;
+  --line-strong: #BFBFCC;
 
-  /* Typography */
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
+  --brand:       #C7264F;
+  --brand-soft:  #FBE7EC;
+  --study:       #1C6F8B;
+  --study-soft:  #E1EFF4;
+  --social:      #9A5B0A;
+  --social-soft: #F7EBDA;
+  --ok:          #1F7A4D;
+  --ok-soft:     #E2F1E9;
+  --warn:        #B4531B;
+  --warn-soft:   #FBEADD;
 
-  /* Brand Colors */
-  --brand: #38bdf8;
-  --brand-hover: #0284c7;
-  --brand-light: rgba(56, 189, 248, 0.12);
+  --r:      12px;
+  --r-sm:   9px;
+  --shadow: 0 1px 2px rgba(23,23,31,.06), 0 8px 24px -16px rgba(23,23,31,.28);
 
-  /* Status & Accent Colors */
-  --status-active: #22c55e;
-  --status-active-bg: rgba(34, 197, 94, 0.12);
-  --status-pending: #f59e0b;
-  --status-pending-bg: rgba(245, 158, 11, 0.12);
-  --status-danger: #ef4444;
-  --status-danger-bg: rgba(239, 68, 68, 0.12);
-  --status-completed: #a855f7;
-  --status-completed-bg: rgba(168, 85, 247, 0.12);
-
-  /* Border Radii */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-
-  /* Layout & Insets */
-  --header-height: 60px;
-  --nav-height: 64px;
-  --safe-top: env(safe-area-inset-top, 0px);
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-
-  /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.25s ease;
+  --font: "Archivo", -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
 }
+
+/* Dark mode: SAME NAMES, different numbers. Nothing else changes. */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ground:      #131318;
+    --surface:     #1C1C23;
+    --surface-2:   #24242D;
+    --ink:         #EDEDF3;
+    --ink-2:       #B4B4C2;
+    --ink-3:       #85859A;
+    --line:        #32323E;
+    --line-strong: #464655;
+
+    --brand:       #FF7C9C;
+    --brand-soft:  #3A1A25;
+    --study:       #6FC4E0;
+    --study-soft:  #12303B;
+    --social:      #E0A055;
+    --social-soft: #38260F;
+    --ok:          #63C795;
+    --ok-soft:     #142E22;
+    --warn:        #F09A63;
+    --warn-soft:   #3A2114;
+
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+
+/* TRAP — READ THIS.
+   Text sitting ON --brand must be color: var(--ground), never #fff.
+   In dark mode --brand becomes a light pink and white text disappears.
+   Same rule for --ok and --warn. */

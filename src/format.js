@@ -1,19 +1,8 @@
-// src/format.js turning dates and numbers into words. No logic lives here.
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-]
+// src/format.js — turning dates and numbers into words. No logic lives here.
+
+const DAYS   = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
 
 export const YEARS = {
   1: "1st year (Freshman)",
@@ -21,22 +10,10 @@ export const YEARS = {
   3: "3rd year (Junior)",
   4: "4th year (Senior)",
 }
-
-export const COURSES = [
-  "CSE",
-  "ISE",
-  "AIML",
-  "ECE",
-  "EEE",
-  "ME",
-  "CV",
-  "MBA",
-  "MCA",
-]
+export const COURSES = ["CSE", "ISE", "AIML", "ECE", "EEE", "ME", "CV", "MBA", "MCA"]
 
 export function time(d) {
-  let hrs = d.getHours(),
-    m = d.getMinutes()
+  let hrs = d.getHours(), m = d.getMinutes()
   const ap = hrs >= 12 ? "PM" : "AM"
   hrs = hrs % 12 || 12
   return m === 0 ? `${hrs} ${ap}` : `${hrs}:${String(m).padStart(2, "0")} ${ap}`
@@ -55,9 +32,9 @@ export function shortDate(d) {
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`
 }
 
-/** "Today 4:00-6:00 PM" */
+/** "Today · 4:00–6:00 PM" */
 export function whenLine(a) {
-  return `${dayLabel(a.startsAt)} ${time(a.startsAt)}-${time(a.endsAt)}`
+  return `${dayLabel(a.startsAt)} · ${time(a.startsAt)}–${time(a.endsAt)}`
 }
 
 /** "in 26m" / "in 3h" / "started" */
@@ -71,16 +48,15 @@ export function countdown(target, now = new Date()) {
 }
 
 /** The one place that decides how a join count is worded.
-Under the host's number: "6 of 10 joined"
-Over it (buffer in play): "12 going"
-never "12 of 10". */
+ *  Under the host's number:  "6 of 10 joined"
+ *  Over it (buffer in play): "12 going"   — never "12 of 10". */
 export function joinLine(a) {
-  return a.joined < a.capacity
+  return a.joined <= a.capacity
     ? `${a.joined} of ${a.capacity} joined`
     : `${a.joined} going`
 }
 
-/* Colour a fallback avatar from the name, deterministically. */
+/** Colour a fallback avatar from the name, deterministically. */
 export function avatarColor(name = "") {
   const vars = ["--brand", "--study", "--social", "--ok", "--warn"]
   let sum = 0

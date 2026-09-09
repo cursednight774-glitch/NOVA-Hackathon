@@ -1,87 +1,101 @@
-// src/screens/Profile.jsx personal record, attended, hosted.
+// src/screens/Profile.jsx — reachable from every face in the app.
+
 import { useEffect, useState } from "react"
-import { useParams, useNavigate } from "react-router-dom"
-import { getProfile, getRecord, getAttended, getHosted, ME } from "../api.js"
-import { AppBar, BackIcon, Avatar, RecordBlock, Poster, Empty } from "../components.jsx"
-import { YEARS } from "../format.js"
+import { useParams, Link, useNavigate } from "react-router-dom"
+import { getProfile, getActivities, getDisputes, ME } from "../api.js"
+import { AppBar, BackIcon, Avatar, RecordBlock } from "../components.jsx"
+import { YEARS, whenLine } from "../format.js"
 
 export default function Profile() {
   const { id } = useParams()
   const nav = useNavigate()
-  const personId = id || ME
-  const isMe = personId === ME
+  const [p, setP] = useState(null)
+  const [theirs, setTheirs] = useState([])
+  const [disputes, setDisputes] = useState([])
 
-  const [person, setPerson] = useState(null)
-  const [record, setRecord] = useState(null)
-  const [attended, setAttended] = useState([])
-  const [hosted, setHosted] = useState([])
-  const [tab, setTab] = useState("attended")
+  useEffect(() => {
+    (async () => {
+      const person = await getProfile(id)
+      setP(person)
+      const all = await getActivities()
+      // ids are compared as strings: activity ids are numbers but
+      // profile ids are uuids. Never wrap a profile id in Number().
+      const mine = String(id) === String(ME)
+      setTheirs(all.filter(a => String(a.hostId) === String(id) || (mine && a.iJoined)))
+      if (mine) setDisputes(await getDisputes(ME))
+    })()
+  }, [id])
 
-  async function load() {
-    const [p, r, att, hst] = await Promise.all([
-      getProfile(personId),
-      getRecord(personId),
-      getAttended(personId),
-      getHosted(personId),
-    ])
-    setPerson(p)
-    setRecord(r)
-    setAttended(att)
-    setHosted(hst)
-  }
+  if (!p) return <AppBar title="Profile" left={<BackIcon />} />
 
-  useEffect(() => { load() }, [personId])
-
-  if (!person) return <AppBar title="Profile" left={<BackIcon />} />
-
-  const list = tab === "attended" ? attended : hosted
+  const groups = [
+    ["Studies", p.interests.studies, "study"],
+    ["Sports",  p.interests.sports,  "sport"],
+    ["Hobbies", p.interests.hobbies, "social"],
+  ]
 
   return (
     <>
-      <AppBar title={isMe ? "My profile" : person.name} left={<BackIcon />} />
+      <AppBar
+        title="Profile"
+        left={<BackIcon />}
+        right={p.isMe ? <Link className="icon" to="/edit">✎</Link> : undefined}
+      />
       <div className="page">
-        <div className="phead">
-          <Avatar person={person} size="lg" />
+
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          <Avatar person={p} size="lg" />
           <div>
-            <div className="nm">{person.name}</div>
-            <div className="yr">{person.course} · {YEARS[person.year]}</div>
-            <div className="muted">@{person.username}</div>
+            <div style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-.02em" }}>{p.name}</div>
+            <div className="muted">@{p.username}</div>
+            <div className="muted" style={{ marginTop: 2 }}>
+              {p.course} · {YEARS[p.year]}
+            </div>
           </div>
         </div>
 
-        <RecordBlock record={record} />
+        {/* the biggest thing on the screen, on purpose */}
+        <RecordBlock record={p.record} />
 
-        <div className="tabs">
-          <button
-            className={`tab ${tab === "attended" ? "on" : ""}`}
-            onClick={() => setTab("attended")}>
-            Attended ({attended.length})
-          </button>
-          <button
-            className={`tab ${tab === "hosted" ? "on" : ""}`}
-            onClick={() => setTab("hosted")}>
-            Hosted ({hosted.length})
-          </button>
-        </div>
+        {groups.map(([label, items, cls]) => (
+          items?.length ? (
+            <div key={label}>
+              <div className="sechead" style={{ marginBottom: 8 }}>{label}</div>
+              <div className="chips">
+                {items.map(i => <span key={i} className={`chip ${cls}`}>{i}</span>)}
+              </div>
+            </div>
+          ) : null
+        ))}
 
-        {list.length === 0 && (
-          <Empty>
-            {tab === "attended"
-              ? "No attended activities yet."
-              : "Hasn't hosted anything yet."}
-          </Empty>
+        {theirs.length > 0 && (
+          <>
+            <div className="sechead">Coming up</div>
+            <div>
+              {theirs.map(a => (
+                <button key={a.id} className="prow" onClick={() => nav(`/a/${a.id}`)}>
+                  <span>
+                    <span className="nm">{a.title}</span><br />
+                    <span className="yr">
+                      {a.hostId === p.id ? "Hosting · " : "Going · "}{whenLine(a)}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
         )}
 
-        <div className="list">
-          {list.map(a => (
-            <Poster
-              key={a.id}
-              activity={a}
-              wide
-              onOpen={() => nav(`/a/${a.id}`)}
-            />
-          ))}
-        </div>
+        {p.isMe && (
+          <>
+            <Link className="btn ghost" to="/stubs">Your stubs</Link>
+            {disputes.length > 0 && (
+              <Link className="btn ghost" to="/disputes">
+                Dispute show-ups · {disputes.length}
+              </Link>
+            )}
+          </>
+        )}
       </div>
     </>
   )

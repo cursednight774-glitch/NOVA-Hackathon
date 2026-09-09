@@ -1,91 +1,126 @@
-// src/screens/EditProfile.jsx edit personal profile details.
+// src/screens/EditProfile.jsx — pencil icon on your own profile.
+// Course and year are MANDATORY. Picture is optional.
+
 import { useEffect, useState } from "react"
 import { useNavigate } from "react-router-dom"
-import { getProfile, updateProfile, ME } from "../api.js"
+import { getProfile, updateProfile, INTERESTS, ME } from "../api.js"
 import { AppBar, BackIcon, Avatar } from "../components.jsx"
-import { YEARS } from "../format.js"
+import { COURSES, YEARS } from "../format.js"
+
+const GROUPS = [
+  ["studies", "Studies", "study"],
+  ["sports",  "Sports",  "sport"],
+  ["hobbies", "Hobbies", "social"],
+]
+const MAX = 12
 
 export default function EditProfile() {
   const nav = useNavigate()
-  const [name, setName] = useState("")
-  const [course, setCourse] = useState("")
-  const [year, setYear] = useState(1)
-  const [avatar, setAvatar] = useState("")
-  const [msg, setMsg] = useState("")
+  const [p, setP] = useState(null)
+  const [q, setQ] = useState("")
 
-  useEffect(() => {
-    getProfile(ME).then(p => {
-      if (p) {
-        setName(p.name || "")
-        setCourse(p.course || "")
-        setYear(p.year || 1)
-        setAvatar(p.avatar || "")
+  useEffect(() => { getProfile(ME).then(setP) }, [])
+  if (!p) return <AppBar title="Edit profile" left={<BackIcon />} />
+
+  const chosen = Object.values(p.interests).flat()
+
+  function toggle(group, item) {
+    setP(prev => {
+      const has = prev.interests[group].includes(item)
+      if (!has && Object.values(prev.interests).flat().length >= MAX) return prev
+      return {
+        ...prev,
+        interests: {
+          ...prev.interests,
+          [group]: has
+            ? prev.interests[group].filter(x => x !== item)
+            : [...prev.interests[group], item],
+        },
       }
     })
-  }, [])
+  }
 
-  async function onSubmit(e) {
-    e.preventDefault()
-    if (!name || !course) {
-      return setMsg("Name and course are required.")
-    }
+  function addCustom(group) {
+    const raw = q.trim()
+    if (!raw) return
+    const clean = raw[0].toUpperCase() + raw.slice(1)
+    if (chosen.some(c => c.toLowerCase() === clean.toLowerCase())) return setQ("")
+    toggle(group, clean)
+    setQ("")
+  }
 
-    const res = await updateProfile({ name, course, year: Number(year), avatar })
-    if (res?.error) setMsg(res.error)
-    else nav(`/p/${ME}`)
+  // reading a picked file as a data URL keeps this working with no storage bucket
+  function pickPhoto(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const r = new FileReader()
+    r.onload = () => setP(prev => ({ ...prev, avatar: r.result }))
+    r.readAsDataURL(file)
+  }
+
+  async function save() {
+    if (!p.course || !p.year) return alert("Course and year are required.")
+    await updateProfile({
+      avatar: p.avatar, course: p.course, year: Number(p.year), interests: p.interests,
+    })
+    nav(`/p/${ME}`)
   }
 
   return (
     <>
       <AppBar title="Edit profile" left={<BackIcon />} />
       <div className="page">
-        <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
-            <Avatar person={{ name, avatar }} size="lg" />
-          </div>
 
-          <div className="field">
-            <label>Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={e => setName(e.target.value)}
-            />
-          </div>
+        <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
+          <Avatar person={p} size="lg" />
+          <label className="btn ghost btn sm" style={{ width: "auto" }}>
+            Change photo
+            <input type="file" accept="image/*" hidden onChange={pickPhoto} />
+          </label>
+        </div>
 
-          <div className="field">
-            <label>Course</label>
-            <input
-              type="text"
-              placeholder="e.g. Computer Science"
-              value={course}
-              onChange={e => setCourse(e.target.value)}
-            />
-          </div>
-
-          <div className="field">
-            <label>Year</label>
-            <select value={year} onChange={e => setYear(e.target.value)}>
-              {Object.entries(YEARS).map(([y, label]) => (
-                <option key={y} value={y}>{label}</option>
-              ))}
+        <div className="two">
+          <div className="field"><label>Course *</label>
+            <select value={p.course || ""} onChange={e => setP({ ...p, course: e.target.value })}>
+              <option value="">Pick…</option>
+              {COURSES.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-
-          <div className="field">
-            <label>Avatar URL (optional)</label>
-            <input
-              type="url"
-              placeholder="https://..."
-              value={avatar}
-              onChange={e => setAvatar(e.target.value)}
-            />
+          <div className="field"><label>Year *</label>
+            <select value={p.year || ""} onChange={e => setP({ ...p, year: e.target.value })}>
+              <option value="">Pick…</option>
+              {Object.entries(YEARS).map(([n, label]) =>
+                <option key={n} value={n}>{label}</option>)}
+            </select>
           </div>
+        </div>
 
-          {msg && <p className="muted" style={{ color: "var(--warn)" }}>{msg}</p>}
+        <div className="field">
+          <label>Search interests ({chosen.length}/{MAX})</label>
+          <input value={q} onChange={e => setQ(e.target.value)} placeholder="Type to filter…" />
+        </div>
 
-          <button className="btn" type="submit">Save changes</button>
-        </form>
+        {GROUPS.map(([key, label, cls]) => {
+          const list = INTERESTS[key].filter(
+            i => !q || i.toLowerCase().includes(q.toLowerCase()))
+          return (
+            <div key={key}>
+              <div className="sechead" style={{ marginBottom: 8 }}>{label}</div>
+              <div className="chips">
+                {list.map(i => (
+                  <button key={i}
+                          className={`chip ${p.interests[key].includes(i) ? cls : ""}`}
+                          onClick={() => toggle(key, i)}>{i}</button>
+                ))}
+                {q && !list.some(i => i.toLowerCase() === q.toLowerCase()) && (
+                  <button className="chip" onClick={() => addCustom(key)}>+ add "{q}"</button>
+                )}
+              </div>
+            </div>
+          )
+        })}
+
+        <button className="btn" onClick={save}>Save</button>
       </div>
     </>
   )

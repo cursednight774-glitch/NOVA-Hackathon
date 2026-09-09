@@ -1,147 +1,146 @@
-// src/screens/Host.jsx host a new activity card.
-import { useState } from "react"
-import { useNavigate } from "react-router-dom"
-import { createActivity } from "../api.js"
-import { AppBar, BackIcon } from "../components.jsx"
+// src/screens/Host.jsx — the + icon. Full screen, not a modal.
 
-const CATEGORIES = [
-  { key: "sport", label: "Sport" },
-  { key: "study", label: "Study" },
-  { key: "social", label: "Social" },
-]
+import { useMemo, useState } from "react"
+import { useNavigate } from "react-router-dom"
+import { VENUES, createActivity, categoryOf } from "../api.js"
+import { AppBar, BackIcon, Poster } from "../components.jsx"
+
+const QUICK = ["Basketball", "Football", "Badminton", "Volleyball", "Evening run",
+               "DSA revision", "Study session", "Project work", "Club meeting",
+               "Photography walk", "Jam session", "Movie night"]
+
+/** "2026-09-12T16:00" -> Date. Empty string -> null. */
+const toDate = v => (v ? new Date(v) : null)
+
+/** A datetime-local value for the next round half hour. */
+function defaultStart() {
+  const d = new Date(Date.now() + 60 * 60 * 1000)
+  d.setMinutes(d.getMinutes() > 30 ? 0 : 30, 0, 0)
+  if (d.getMinutes() === 0) d.setHours(d.getHours() + 1)
+  return local(d)
+}
+function local(d) {
+  const p = n => String(n).padStart(2, "0")
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
 
 export default function Host() {
   const nav = useNavigate()
-  const [category, setCategory] = useState("sport")
-  const [title, setTitle] = useState("")
-  const [venue, setVenue] = useState("")
-  const [meetingPoint, setMeetingPoint] = useState("")
-  const [capacity, setCapacity] = useState(4)
-  const [startsAt, setStartsAt] = useState("")
-  const [durationMins, setDurationMins] = useState(60)
-  const [image, setImage] = useState("")
-  const [msg, setMsg] = useState("")
+  const [title, setTitle]   = useState("")
+  const [venue, setVenue]   = useState("")
+  const [point, setPoint]   = useState("")
+  const [start, setStart]   = useState(defaultStart())
+  const [end, setEnd]       = useState(local(new Date(new Date(defaultStart()).getTime() + 2 * 3600 * 1000)))
+  const [cap, setCap]       = useState(10)
+  const [strict, setStrict] = useState(false)
+  const [cat, setCat]       = useState(null)
+  const [busy, setBusy]     = useState(false)
 
-  async function onSubmit(e) {
-    e.preventDefault()
-    if (!title || !venue || !startsAt) {
-      return setMsg("Title, venue, and start time are required.")
-    }
-    const start = new Date(startsAt)
-    const end = new Date(start.getTime() + durationMins * 60000)
+  const category = cat ?? categoryOf(title)
+  const ready = title.trim() && venue && start && end && toDate(end) > toDate(start)
 
-    const res = await createActivity({
+  const preview = useMemo(() => ({
+    title: title || "Your activity",
+    category,
+    startsAt: toDate(start) || new Date(),
+    endsAt: toDate(end) || new Date(),
+    venue: venue || "Pick a venue",
+    meetingPoint: point,
+    joined: null,
+  }), [title, category, start, end, venue, point])
+
+  async function post() {
+    if (!ready || busy) return
+    setBusy(true)
+    const a = await createActivity({
+      title: title.trim(),
       category,
-      title,
       venue,
-      meetingPoint,
-      capacity: Number(capacity),
-      startsAt: start,
-      endsAt: end,
-      image,
+      meetingPoint: point.trim(),
+      startsAt: toDate(start),
+      endsAt: toDate(end),
+      capacity: Number(cap),
+      strictLimit: strict,
     })
-
-    if (res?.error) setMsg(res.error)
-    else nav(`/a/${res.id}`)
+    nav(`/a/${a.id}`)
   }
 
   return (
     <>
-      <AppBar title="Host activity" left={<BackIcon />} />
+      <AppBar title="Host something" left={<BackIcon />} />
       <div className="page">
-        <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div className="field">
-            <label>Category</label>
-            <div className="chips" style={{ padding: 0 }}>
-              {CATEGORIES.map(c => (
-                <button
-                  type="button"
-                  key={c.key}
-                  className={`chip ${category === c.key ? "on" : ""}`}
-                  onClick={() => setCategory(c.key)}>
-                  {c.label}
-                </button>
-              ))}
-            </div>
+
+        <div className="field">
+          <label>What are you doing</label>
+          <input value={title} onChange={e => { setTitle(e.target.value); setCat(null) }}
+                 placeholder="Basketball at Court B" />
+        </div>
+
+        <div className="chips">
+          {QUICK.map(q => (
+            <button key={q} className={`chip ${title === q ? "on" : ""}`}
+                    onClick={() => { setTitle(q); setCat(null) }}>{q}</button>
+          ))}
+        </div>
+
+        {/* we guessed a category — let the host correct it in one tap */}
+        <div className="chips">
+          {["sport", "study", "social"].map(c => (
+            <button key={c} className={`chip ${category === c ? c : ""}`}
+                    onClick={() => setCat(c)}>{c}</button>
+          ))}
+        </div>
+
+        <div className="field">
+          <label>Venue</label>
+          <select value={venue} onChange={e => setVenue(e.target.value)}>
+            <option value="">Pick a venue…</option>
+            {VENUES.map(v => <option key={v} value={v}>{v}</option>)}
+          </select>
+        </div>
+
+        <div className="field">
+          <label>Meeting point (optional)</label>
+          <input value={point} onChange={e => setPoint(e.target.value)}
+                 placeholder="By the nets" />
+        </div>
+
+        <div className="two">
+          <div className="field"><label>Starts</label>
+            <input type="datetime-local" value={start} onChange={e => setStart(e.target.value)} /></div>
+          <div className="field"><label>Ends</label>
+            <input type="datetime-local" value={end} onChange={e => setEnd(e.target.value)} /></div>
+        </div>
+
+        <div className="field">
+          <label>How many people</label>
+          <div className="step">
+            <button onClick={() => setCap(c => Math.max(2, c - 1))}>−</button>
+            <span className="v">{cap}</span>
+            <button onClick={() => setCap(c => Math.min(50, c + 1))}>+</button>
+            <span className="hint">
+              {strict
+                ? <>Exactly {cap}.<br />No extras.</>
+                : <>{cap + 2} can join.<br />2 extra in case<br />someone drops.</>}
+            </span>
           </div>
+        </div>
 
-          <div className="field">
-            <label>Title</label>
-            <input
-              type="text"
-              placeholder="e.g. Badminton 2v2"
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-            />
+        <div className="tglrow">
+          <div>
+            <div className="lb">Strict limit</div>
+            <div className="muted">Turn off the two spare places.</div>
           </div>
+          <button className={`tgl ${strict ? "on" : ""}`}
+                  onClick={() => setStrict(s => !s)} aria-label="Strict limit" />
+        </div>
 
-          <div className="two">
-            <div className="field">
-              <label>Venue</label>
-              <input
-                type="text"
-                placeholder="e.g. Indoor Court"
-                value={venue}
-                onChange={e => setVenue(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Meeting point</label>
-              <input
-                type="text"
-                placeholder="e.g. Gate 2"
-                value={meetingPoint}
-                onChange={e => setMeetingPoint(e.target.value)}
-              />
-            </div>
-          </div>
+        <div className="sechead">Preview</div>
+        <Poster activity={preview} wide />
 
-          <div className="two">
-            <div className="field">
-              <label>Spots (capacity)</label>
-              <input
-                type="number"
-                min="2"
-                max="50"
-                value={capacity}
-                onChange={e => setCapacity(e.target.value)}
-              />
-            </div>
-            <div className="field">
-              <label>Duration (mins)</label>
-              <input
-                type="number"
-                step="15"
-                min="15"
-                value={durationMins}
-                onChange={e => setDurationMins(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="field">
-            <label>Start time</label>
-            <input
-              type="datetime-local"
-              value={startsAt}
-              onChange={e => setStartsAt(e.target.value)}
-            />
-          </div>
-
-          <div className="field">
-            <label>Cover image URL (optional)</label>
-            <input
-              type="url"
-              placeholder="https://..."
-              value={image}
-              onChange={e => setImage(e.target.value)}
-            />
-          </div>
-
-          {msg && <p className="muted" style={{ color: "var(--warn)" }}>{msg}</p>}
-
-          <button className="btn" type="submit">Publish activity</button>
-        </form>
+        <button className="btn" disabled={!ready || busy} onClick={post}>
+          {busy ? "Posting…" : "Post it"}
+        </button>
       </div>
     </>
   )

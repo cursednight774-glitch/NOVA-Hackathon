@@ -1,4 +1,5 @@
-// src/main.jsx the entry point. Order matters: theme.css before app.css.
+// src/main.jsx — the entry point. Order matters: theme.css before app.css.
+
 import React from "react"
 import ReactDOM from "react-dom/client"
 import "./theme.css"

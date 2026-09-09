@@ -27,7 +27,7 @@ const S = {
   field: { border: "1px solid #DCDCE4", borderRadius: 9, padding: "10px 12px",
            background: "#fff" },
   input: { width: "100%", border: 0, outline: "none", fontSize: 16,
-           fontWeight: 600, background: "transparent" },
+         fontWeight: 600, background: "transparent", color: "#17171F" },
   two:   { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 },
   btn:   { width: "100%", padding: 14, borderRadius: 9, border: 0,
            background: "#C7264F", color: "#fff", fontSize: 16, fontWeight: 800,

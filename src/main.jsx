@@ -1,15 +1,17 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.jsx'
-import { loadMe } from './api.js'
+// src/main.jsx the entry point. Order matters: theme.css before app.css.
+import React from "react"
+import ReactDOM from "react-dom/client"
+import "./theme.css"
+import "./app.css"
+import App from "./App.jsx"
+import { loadMe } from "./api.js"
 
-// Work out who's signed in BEFORE the first render. Without this,
-// every screen loads thinking nobody is logged in.
+// Work out who's signed in BEFORE the first render. If we render first,
+// every screen loads with ME = null and thinks nobody is logged in.
 loadMe().then(() => {
-  createRoot(document.getElementById('root')).render(
-    <StrictMode>
+  ReactDOM.createRoot(document.getElementById("root")).render(
+    <React.StrictMode>
       <App />
-    </StrictMode>
+    </React.StrictMode>
   )
 })

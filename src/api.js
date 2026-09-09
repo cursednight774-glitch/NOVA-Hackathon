@@ -94,7 +94,7 @@ async function loadPeople(ids) {
   const missing = [...new Set(ids)].filter(id => id && !cache[id])
   if (!missing.length) return
   const { data } = await supabase.from('profiles').select('*').in('id', missing)
-  ;(data || []).forEach(p => { cache[p.id] = p })
+  ;(data || []).forEach(p => { cache[p.id] = { ...p, avatar: p.avatar_url } })
 }
 
 /** database snake_case -> screen camelCase */

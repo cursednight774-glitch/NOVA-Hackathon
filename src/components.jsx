@@ -3,6 +3,12 @@
 import { Link, useNavigate } from "react-router-dom"
 import { avatarColor, whenLine, time, YEARS } from "./format.js"
 
+import sportBg from "./assets/category-sport.jpg"
+import studyBg from "./assets/category-study.jpg"
+import socialBg from "./assets/category-social.jpg"
+
+const CATEGORY_BG = { sport: sportBg, study: studyBg, social: socialBg }
+
 /* ---------- 1. Avatar ---------- */
 export function Avatar({ person, size = "" }) {
   if (!person) return <span className={`av ${size}`} />
@@ -75,16 +81,23 @@ export function HostLine({ host, record }) {
 }
 
 /* ---------- 6. Poster card ---------- */
-export function Poster({ activity, wide = false, showJoin = false, onJoin, onOpen }) {
+export function Poster({ activity, wide = false, showJoin = false, record, onJoin, onOpen }) {
   const a = activity
   return (
     <div className={`poster ${wide ? "wide" : ""}`} onClick={onOpen}>
-      {/* background: a category image when we have one, gradient otherwise */}
+      {/* background: activity-specific image if set, else the category photo */}
       <div className={`bg ${a.category}`}
-           style={a.image ? { backgroundImage: `url(${a.image})` } : undefined} />
+           style={{ backgroundImage: `url(${a.image || CATEGORY_BG[a.category]})` }} />
       <div className="scrim" />
       <div className="top">
-        <span className="cat">{a.category}</span>
+        {a.host ? (
+          <Link className="posterhost" to={`/p/${a.host.id}`} onClick={e => e.stopPropagation()}>
+            <Avatar person={a.host} size="sm" />
+            <span className="nm">{a.host.name}</span>
+            {record && !record.newHere && <span className="rec">{record.showed}/{record.of}</span>}
+            {record && record.newHere && <span className="rec" style={{ color: "var(--ink-3)" }}>New</span>}
+          </Link>
+        ) : <span className="cat">{a.category}</span>}
         {a.joined != null && (
           <span className="cnt">
             {a.joined <= a.capacity ? `${a.joined}/${a.capacity}` : `${a.joined} going`}

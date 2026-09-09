@@ -21,6 +21,12 @@ a { color: inherit; text-decoration: none; }
 /* ---------- app shell ---------- */
 .app      { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--ground);
             overflow-x: hidden; }
+
+.bootload { min-height: 100dvh; display: grid; place-items: center; background: var(--ground); }
+.bootload .spin { width: 30px; height: 30px; border-radius: 50%;
+                   border: 3px solid var(--line-strong); border-top-color: var(--brand);
+                   animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .appbar   { position: sticky; top: 0; z-index: 20; display: flex; align-items: center;
             justify-content: space-between; gap: 10px; padding: 12px 14px;
             background: var(--surface); border-bottom: 1px solid var(--line); }
@@ -54,6 +60,17 @@ a { color: inherit; text-decoration: none; }
          font-size: 12.5px; font-weight: 700; color: var(--ink-2); white-space: nowrap; }
 .chip.on      { background: var(--ink); border-color: var(--ink); color: var(--ground); }
 .chip.sport   { background: var(--brand-soft);  border-color: transparent; color: var(--brand); }
+
+/* ---------- collapsible interest groups (Edit profile) ---------- */
+.intgroup { border: 1px solid var(--line); border-radius: var(--r-sm);
+            background: var(--surface); overflow: hidden; }
+.intgroup .chips { padding: 0 12px 12px; }
+.intgroup-head { list-style: none; cursor: pointer; user-select: none;
+                 padding: 12px; display: flex; align-items: center; justify-content: space-between; }
+.intgroup-head::-webkit-details-marker { display: none; }
+.intgroup-head::after { content: "›"; display: inline-block; font-size: 16px;
+                        transform: rotate(90deg); transition: transform .15s ease; color: var(--ink-3); }
+.intgroup[open] .intgroup-head::after { transform: rotate(-90deg); }
 .chip.study   { background: var(--study-soft);  border-color: transparent; color: var(--study); }
 .chip.social  { background: var(--social-soft); border-color: transparent; color: var(--social); }
 .chip.ok      { background: var(--ok-soft);     border-color: transparent; color: var(--ok); }
@@ -67,16 +84,16 @@ a { color: inherit; text-decoration: none; }
 .rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
         margin: 0 -14px; padding: 0 14px 4px; scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
-.rail > * { scroll-snap-align: center; flex: none; width: calc(100% - 34px); }
+.rail > * { scroll-snap-align: center; flex: none; width: calc(100% - 68px); }
 
-.poster { position: relative; aspect-ratio: 4/5; border-radius: var(--r); overflow: hidden;
+.poster { position: relative; aspect-ratio: 3/4.3; border-radius: var(--r); overflow: hidden;
           display: flex; flex-direction: column; justify-content: flex-end;
           padding: 16px; color: #FFFFFF; }
 .poster.wide { aspect-ratio: 16/9; }
 .poster .bg   { position: absolute; inset: 0; background-size: cover; background-position: center; }
-.poster .bg.sport  { background-image: linear-gradient(158deg, var(--brand), var(--ink)); }
-.poster .bg.study  { background-image: linear-gradient(158deg, var(--study), var(--ink)); }
-.poster .bg.social { background-image: linear-gradient(158deg, var(--social), var(--ink)); }
+.poster .bg.sport  { background-color: var(--brand); }
+.poster .bg.study  { background-color: var(--study); }
+.poster .bg.social { background-color: var(--social); }
 .poster .scrim { position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 34%, rgba(0,0,0,.82) 100%); }
 .poster .top { position: absolute; top: 12px; left: 14px; right: 14px;
@@ -84,6 +101,10 @@ a { color: inherit; text-decoration: none; }
 .poster .cat { font-family: var(--mono); font-size: 10px; letter-spacing: .16em;
                text-transform: uppercase; background: rgba(255,255,255,.22);
                padding: 4px 9px; border-radius: 999px; }
+.posterhost { display: flex; align-items: center; gap: 6px; color: #FFFFFF;
+              text-shadow: 0 1px 3px rgba(0,0,0,.6); }
+.posterhost .nm { font-weight: 800; font-size: 13px; }
+.posterhost .rec { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--ok); }
 .poster .cnt { font-family: var(--mono); font-size: 11px; font-weight: 600;
                background: rgba(0,0,0,.45); padding: 4px 9px; border-radius: 999px; }
 .poster .txt  { position: relative; }

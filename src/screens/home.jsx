@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { getActivities, getStartingSoon, getProfile, getRecord, joinActivity, ME } from "../api.js"
-import { AppBar, ProfileIcon, AddIcon, HostLine, Poster, PersonRow, Empty } from "../components.jsx"
+import { AppBar, ProfileIcon, AddIcon, Poster, PersonRow, Empty } from "../components.jsx"
 import { countdown } from "../format.js"
 
 const FILTERS = [
@@ -23,9 +23,11 @@ export default function Home() {
   const [soon, setSoon]       = useState([])
   const [index, setIndex]     = useState(0)
   const [records, setRecords] = useState({})   // { personId: record }
+  const [loading, setLoading] = useState(true)
 
   // load everything for the current filter
   async function load() {
+    setLoading(true)
     const [acts, sn, myself] = await Promise.all([
       getActivities({ category: filter }),
       getStartingSoon(),
@@ -33,10 +35,12 @@ export default function Home() {
     ])
     setList(acts); setSoon(sn); setMe(myself); setIndex(0)
 
-    // the host records shown above each poster
-    const recs = {}
-    for (const a of acts) recs[a.hostId] = await getRecord(a.hostId)
-    setRecords(recs)
+    // the host records shown above each poster — dedupe hosts and fetch
+    // them all at once instead of one request after another
+    const hostIds = [...new Set(acts.map(a => a.hostId))]
+    const recEntries = await Promise.all(hostIds.map(async id => [id, await getRecord(id)]))
+    setRecords(Object.fromEntries(recEntries))
+    setLoading(false)
   }
   useEffect(() => { load() }, [filter])
 
@@ -53,8 +57,6 @@ export default function Home() {
     if (res.error) return alert(res.error)
     load()
   }
-
-  const current = list[Math.min(index, list.length - 1)]
 
   return (
     <>
@@ -76,17 +78,21 @@ export default function Home() {
           ))}
         </div>
 
-        {list.length === 0 && <Empty>Nothing on today. You start it.</Empty>}
+        {loading && (
+          <div className="bootload" style={{ minHeight: 240 }}>
+            <span className="spin" />
+          </div>
+        )}
 
-        {list.length > 0 && (
+        {!loading && list.length === 0 && <Empty>Nothing on today. You start it.</Empty>}
+
+        {!loading && list.length > 0 && (
           <>
-            {/* host name sits ABOVE the poster and changes as you swipe */}
-            <HostLine host={current?.host} record={records[current?.hostId]} />
-
             <div className="rail" ref={railRef} onScroll={onScroll}>
               {list.map(a => (
                 <div key={a.id}>
                   <Poster activity={a} showJoin
+                          record={records[a.hostId]}
                           onJoin={() => join(a)}
                           onOpen={() => nav(`/a/${a.id}`)} />
                 </div>

@@ -103,9 +103,13 @@ export default function EditProfile() {
         {GROUPS.map(([key, label, cls]) => {
           const list = INTERESTS[key].filter(
             i => !q || i.toLowerCase().includes(q.toLowerCase()))
+          const pickedCount = p.interests[key].length
+          if (q && !list.length) return null
           return (
-            <div key={key}>
-              <div className="sechead" style={{ marginBottom: 8 }}>{label}</div>
+            <details key={key} className="intgroup" open={!!q || undefined}>
+              <summary className="sechead intgroup-head">
+                {label}{pickedCount > 0 ? ` · ${pickedCount}` : ""}
+              </summary>
               <div className="chips">
                 {list.map(i => (
                   <button key={i}
@@ -116,7 +120,7 @@ export default function EditProfile() {
                   <button className="chip" onClick={() => addCustom(key)}>+ add "{q}"</button>
                 )}
               </div>
-            </div>
+            </details>
           )
         })}
 

@@ -5,9 +5,11 @@ import { useNavigate } from "react-router-dom"
 import { VENUES, createActivity, categoryOf } from "../api.js"
 import { AppBar, BackIcon, Poster } from "../components.jsx"
 
-const QUICK = ["Basketball", "Football", "Badminton", "Volleyball", "Evening run",
-               "DSA revision", "Study session", "Project work", "Club meeting",
-               "Photography walk", "Jam session", "Movie night"]
+const QUICK_GROUPS = [
+  ["sport",  "Sport",  ["Basketball", "Football", "Badminton", "Volleyball", "Evening run"]],
+  ["study",  "Study",  ["DSA revision", "Study session", "Project work"]],
+  ["social", "Social", ["Club meeting", "Photography walk", "Jam session", "Movie night"]],
+]
 
 /** "2026-09-12T16:00" -> Date. Empty string -> null. */
 const toDate = v => (v ? new Date(v) : null)
@@ -76,12 +78,17 @@ export default function Host() {
                  placeholder="Basketball at Court B" />
         </div>
 
-        <div className="chips">
-          {QUICK.map(q => (
-            <button key={q} className={`chip ${title === q ? "on" : ""}`}
-                    onClick={() => { setTitle(q); setCat(null) }}>{q}</button>
-          ))}
-        </div>
+        {QUICK_GROUPS.map(([key, label, items]) => (
+          <details key={key} className="intgroup">
+            <summary className="sechead intgroup-head">{label} suggestions</summary>
+            <div className="chips">
+              {items.map(q => (
+                <button key={q} className={`chip ${title === q ? key : ""}`}
+                        onClick={() => { setTitle(q); setCat(null) }}>{q}</button>
+              ))}
+            </div>
+          </details>
+        ))}
 
         {/* we guessed a category — let the host correct it in one tap */}
         <div className="chips">

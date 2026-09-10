@@ -168,6 +168,7 @@ export function ShareStub({ stub, innerRef }) {
     <div className={`stub ${stub.category}`} ref={innerRef}>
       <div className="stubbg" style={{ backgroundImage: `url(${stubBg})` }} />
       <div className="head">
+        <div className="brand">Show up</div>
         <div className="big">{stub.title}</div>
       </div>
       <div className="bot">
@@ -194,7 +195,6 @@ export function ShareStub({ stub, innerRef }) {
       </div>
       <div className="sign">
         <div className="handle">@{stub.username}</div>
-        <div className="appname">Show Up</div>
       </div>
     </div>
   )

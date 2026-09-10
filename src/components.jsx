@@ -6,7 +6,7 @@ import { avatarColor, whenLine, time, YEARS } from "./format.js"
 import sportBg from "./assets/category-sport.jpg"
 import studyBg from "./assets/category-study.jpg"
 import socialBg from "./assets/category-social.jpg"
-import stubBg from "./assets/stub-bg.jpeg"
+import stubBg from "./assets/stub-bg.jpg"
 
 const CATEGORY_BG = { sport: sportBg, study: studyBg, social: socialBg }
 

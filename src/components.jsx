@@ -166,7 +166,7 @@ export function Empty({ children }) {
 export function ShareStub({ stub, innerRef }) {
   return (
     <div className={`stub ${stub.category}`} ref={innerRef}>
-      <div className="stubbg" style={{ backgroundImage: `url(${stubBg})` }} />
+      <img className="stubbg" src={stubBg} alt="" />
       <div className="head">
         <div className="big">{stub.title}</div>
       </div>

@@ -225,8 +225,8 @@ a { color: inherit; text-decoration: none; }
    identical on every phone in every theme. */
 .stub { width: 320px; height: 569px; border-radius: 26px; overflow: hidden;
         position: relative; font-family: var(--font); margin: 0 auto; }
-.stub .stubbg { position: absolute; inset: 0; background: #14141A;
-                background-size: cover; background-position: center; z-index: 0; }
+.stub .stubbg { position: absolute; inset: 0; width: 100%; height: 100%;
+                object-fit: cover; background: #14141A; z-index: 0; }
 
 .stub .head { position: absolute; top: 36px; left: 24px; right: 24px; height: 127px;
               z-index: 1; color: #FFFFFF; }

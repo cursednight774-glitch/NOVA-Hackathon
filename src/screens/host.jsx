@@ -64,7 +64,7 @@ export default function Host() {
       capacity: Number(cap),
       strictLimit: strict,
     })
-    nav(`/a/${a.id}`)
+    nav(`/a/${a.id}`, { replace: true })
   }
 
   return (

@@ -6,6 +6,7 @@ import { avatarColor, whenLine, time, YEARS } from "./format.js"
 import sportBg from "./assets/category-sport.jpg"
 import studyBg from "./assets/category-study.jpg"
 import socialBg from "./assets/category-social.jpg"
+import stubBg from "./assets/stub-bg.jpeg"
 
 const CATEGORY_BG = { sport: sportBg, study: studyBg, social: socialBg }
 
@@ -165,27 +166,35 @@ export function Empty({ children }) {
 export function ShareStub({ stub, innerRef }) {
   return (
     <div className={`stub ${stub.category}`} ref={innerRef}>
+      <div className="stubbg" style={{ backgroundImage: `url(${stubBg})` }} />
       <div className="head">
-        <div className="brand"><span>Show Up</span><span>SJEC</span></div>
         <div className="big">{stub.title}</div>
-        <div className="meta">
-          {stub.date.toDateString().slice(0, 10)} · {time(stub.date)}<br />
-          {stub.venue}
+      </div>
+      <div className="bot">
+        <div className="row2">
+          <div><div className="lbl">Date</div>
+               <div className="val">{stub.date.toDateString().slice(4, 10)}, {stub.date.getFullYear()}</div></div>
+          <div><div className="lbl">Time</div>
+               <div className="val">{time(stub.date)}</div></div>
+        </div>
+        <div>
+          <div className="lbl">Location</div>
+          <div className="val">{stub.venue}</div>
+        </div>
+        <div>
+          <div className="lbl caps">Turned up</div>
+          <div className="faces">
+            {stub.turnedUp.slice(0, 6).map(p => <Avatar key={p.id} person={p} size="sm" />)}
+          </div>
+          <div className="names">
+            {stub.turnedUp.map(p => p.username === stub.username ? <b key={p.id}>you</b> : p.name.split(" ")[0])
+              .reduce((acc, n, i) => i === 0 ? [n] : [...acc, " · ", n], [])}
+          </div>
         </div>
       </div>
-      <div className="perf" />
-      <div className="bot">
-        <div className="lbl">Turned up</div>
-        <div className="faces">
-          {stub.turnedUp.slice(0, 6).map(p => <i key={p.id} />)}
-        </div>
-        <div className="names">
-          {stub.turnedUp.map(p => p.username === stub.username ? "you" : p.name.split(" ")[0])
-            .join(" · ")}
-        </div>
-        <div className="mine"><span>Collected by</span>@{stub.username}</div>
-        <div className="code" />
-        <div className="serial"><span>NO. {stub.serial}</span><span>SHOW UP</span></div>
+      <div className="sign">
+        <div className="handle">@{stub.username}</div>
+        <div className="appname">Show Up</div>
       </div>
     </div>
   )

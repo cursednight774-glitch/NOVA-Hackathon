@@ -93,15 +93,15 @@ a { color: inherit; text-decoration: none; }
 
 /* --- poster carousel rail ---
    FORCED medium 9:16 poster cards with peek-through scroll.
-   - First card:  peek of second card visible on the right
+   - First card:  fully visible, peek of second on the right
    - Middle cards: peeks of both neighbors
-   - Last card:   peek of previous card on the left
+   - Last card:   fully visible, peek of previous on the left
    All sizes use !important to prevent any override.                     */
-.railwrap { position: relative; overflow: hidden !important; }
+.railwrap { position: relative; }
 .rail { display: flex !important; align-items: start !important; gap: 12px !important;
         overflow-x: auto !important; overflow-y: hidden !important;
         scroll-snap-type: x mandatory !important;
-        margin: 0 -14px !important; padding: 0 14px 4px !important;
+        margin: 0 !important; padding: 0 0 4px !important;
         scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important; }
 .rail::-webkit-scrollbar { display: none !important; }
 
@@ -109,10 +109,9 @@ a { color: inherit; text-decoration: none; }
 .rail > * { scroll-snap-align: start !important; flex: 0 0 240px !important;
             width: 240px !important; max-width: 240px !important; min-width: 240px !important; }
 
-/* trailing spacer so the LAST card can scroll fully into the left position,
-   leaving a peek of the previous card visible. calc = viewport - card - padding */
-.rail::after { content: "" !important; flex: 0 0 calc(100% - 240px - 14px) !important;
-               width: calc(100% - 240px - 14px) !important; }
+/* tiny trailing spacer — just prevents the last card from hugging the edge;
+   the natural scroll end puts the last card on the right with the previous card peeking left */
+.rail::after { content: "" !important; flex: 0 0 1px !important; width: 1px !important; }
 
 /* prev/next arrows — desktop/trackpad only; phones already swipe */
 .railnav { display: none; }

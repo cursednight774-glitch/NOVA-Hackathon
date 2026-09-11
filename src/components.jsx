@@ -8,7 +8,7 @@ import studyBg from "./assets/category-study.jpg"
 import socialBg from "./assets/category-social.jpg"
 import stubBg from "./assets/stub-bg.jpg"
 
-const CATEGORY_BG = { sport: sportBg, study: studyBg, social: socialBg }
+export const CATEGORY_BG = { sport: sportBg, study: studyBg, social: socialBg }
 
 /* ---------- 1. Avatar ---------- */
 export function Avatar({ person, size = "" }) {

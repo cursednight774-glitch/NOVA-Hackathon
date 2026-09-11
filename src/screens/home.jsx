@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { getActivities, getStartingSoon, getProfile, getRecord, joinActivity, ME } from "../api.js"
-import { AppBar, ProfileIcon, AddIcon, Poster, PersonRow, Empty } from "../components.jsx"
+import { AppBar, ProfileIcon, AddIcon, Poster, PersonRow, Empty, CATEGORY_BG } from "../components.jsx"
 import { countdown } from "../format.js"
 
 const FILTERS = [
@@ -52,6 +52,30 @@ export default function Home() {
     setIndex(Math.round(el.scrollLeft / card))
   }
 
+  // scroll the rail to a given card index — used by the arrow buttons and
+  // the keyboard left/right handler, since dragging/swiping isn't available
+  // on a laptop trackpad the way it is on a phone.
+  function goTo(i) {
+    const el = railRef.current
+    if (!el || !list.length) return
+    const clamped = Math.max(0, Math.min(i, list.length - 1))
+    const card = el.scrollWidth / list.length
+    el.scrollTo({ left: card * clamped, behavior: "smooth" })
+  }
+
+  // left/right arrow keys browse the rail, same as swiping on a phone.
+  // Skipped while a real input/textarea has focus so typing isn't hijacked.
+  useEffect(() => {
+    function onKey(e) {
+      const tag = document.activeElement?.tagName
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return
+      if (e.key === "ArrowLeft")  goTo(index - 1)
+      if (e.key === "ArrowRight") goTo(index + 1)
+    }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [index, list.length])
+
   async function join(a) {
     const res = await joinActivity(a.id)
     if (res.error) return alert(res.error)
@@ -88,15 +112,25 @@ export default function Home() {
 
         {!loading && list.length > 0 && (
           <>
-            <div className="rail" ref={railRef} onScroll={onScroll}>
-              {list.map(a => (
-                <div key={a.id}>
-                  <Poster activity={a} showJoin
-                          record={records[a.hostId]}
-                          onJoin={() => join(a)}
-                          onOpen={() => nav(`/a/${a.id}`)} />
-                </div>
-              ))}
+            <div className="railwrap">
+              <div className="rail" ref={railRef} onScroll={onScroll}>
+                {list.map(a => (
+                  <div key={a.id}>
+                    <Poster activity={a} showJoin
+                            record={records[a.hostId]}
+                            onJoin={() => join(a)}
+                            onOpen={() => nav(`/a/${a.id}`)} />
+                  </div>
+                ))}
+              </div>
+              {index > 0 && list.length > 1 && (
+                <button className="railnav prev" aria-label="Previous activity"
+                        onClick={() => goTo(index - 1)}>‹</button>
+              )}
+              {list.length > 1 && index < list.length - 1 && (
+                <button className="railnav next" aria-label="Next activity"
+                        onClick={() => goTo(index + 1)}>›</button>
+              )}
             </div>
 
             <div className="dots">
@@ -112,7 +146,7 @@ export default function Home() {
               {soon.map(a => (
                 <PersonRow
                   key={a.id}
-                  person={{ id: a.id, name: a.title }}
+                  person={{ id: a.id, name: a.title, avatar: a.image || CATEGORY_BG[a.category] }}
                   sub={`${countdown(a.startsAt)} · ${a.host.name}`}
                   right={<span className="recchip">{a.joined} going</span>}
                   onClick={() => nav(`/a/${a.id}`)}

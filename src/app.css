@@ -38,6 +38,8 @@ a { color: inherit; text-decoration: none; }
                 display: grid; place-items: center; background: var(--surface-2);
                 font-size: 17px; font-weight: 700; color: var(--ink-2); overflow: hidden; }
 .appbar .icon.brand { background: var(--brand); color: var(--ground); }
+.appbar .icon.signin { width: auto; padding: 0 14px; border-radius: 999px;
+                       font-size: 13px; white-space: nowrap; }
 .appbar .icon img   { width: 100%; height: 100%; object-fit: cover; }
 
 .page  { padding: 14px; display: grid; gap: 14px; align-content: start; }
@@ -245,9 +247,13 @@ a { color: inherit; text-decoration: none; }
    layout: dark title panel top, light body below with Date/Time,
    Location, Turned up, and the @handle near the bottom.
    Colours are DELIBERATELY hardcoded — exported as an image, must look
-   identical on every phone in every theme. */
+   identical on every phone in every theme.
+   color-scheme: light stops Android Chrome/Samsung Internet's "auto dark
+   theme" from repainting this light card dark — without it, phones with
+   system dark mode on invert it even though every colour here is fixed. */
 .stub { width: 320px; height: 569px; border-radius: 26px; overflow: hidden;
-        position: relative; font-family: var(--font); margin: 0 auto; }
+        position: relative; font-family: var(--font); margin: 0 auto;
+        color-scheme: light; }
 .stub .stubbg { position: absolute; inset: 0; width: 100%; height: 100%;
                 object-fit: cover; background: #14141A; z-index: 0; }
 

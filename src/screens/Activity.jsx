@@ -67,6 +67,12 @@ export default function Activity() {
           </button>
     }
     if (a.isFull) return <button className="btn off" disabled>Full</button>
+    if (!ME) return (
+      <button className="btn" onClick={() =>
+        nav("/login", { state: { reason: "Log in to join this activity." } })}>
+        Sign in to join
+      </button>
+    )
     return <button className="btn" onClick={() => run(() => joinActivity(a.id))}>Join</button>
   }
 

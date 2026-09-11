@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react"
 import { useNavigate } from "react-router-dom"
 import { getActivities, getStartingSoon, getProfile, getRecord, joinActivity, ME } from "../api.js"
-import { AppBar, ProfileIcon, AddIcon, Poster, PersonRow, Empty, CATEGORY_BG } from "../components.jsx"
+import { AppBar, ProfileIcon, AddIcon, SignInIcon, Poster, PersonRow, Empty, CATEGORY_BG } from "../components.jsx"
 import { countdown } from "../format.js"
 
 const FILTERS = [
@@ -77,6 +77,8 @@ export default function Home() {
   }, [index, list.length])
 
   async function join(a) {
+    // browsing is public, but joining needs an account
+    if (!ME) return nav("/login", { state: { reason: "Log in to join this activity." } })
     const res = await joinActivity(a.id)
     if (res.error) return alert(res.error)
     load()
@@ -88,7 +90,7 @@ export default function Home() {
         title="Today"
         sub={`${list.length} ${list.length === 1 ? "thing" : "things"} happening`}
         left={<ProfileIcon me={me} />}
-        right={<AddIcon />}
+        right={ME ? <AddIcon /> : <SignInIcon />}
       />
 
       <div className="page">

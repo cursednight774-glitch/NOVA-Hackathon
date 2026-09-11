@@ -2,6 +2,7 @@
 // Nihal's file. Rough but working — your teammate restyles it later.
 
 import { useState } from "react"
+import { useLocation, useNavigate } from "react-router-dom"
 import { signIn, signUp } from "../auth.js"
 import { loadMe } from "../api.js"
 import Privacy from "./Privacy.jsx"
@@ -38,9 +39,17 @@ const S = {
            color: "#7C7C8C", fontSize: 14, cursor: "pointer" },
   err:   { color: "#B4531B", fontSize: 14, margin: 0 },
   hint:  { color: "#7C7C8C", fontSize: 12, margin: "2px 0 4px", lineHeight: 1.4 },
+  back:  { alignSelf: "flex-start", padding: "6px 0", background: "none", border: 0,
+           color: "#7C7C8C", fontSize: 14, cursor: "pointer" },
+  reason:{ background: "#FBEFD2", color: "#7A5B12", fontSize: 13.5, fontWeight: 600,
+           padding: "10px 12px", borderRadius: 9, margin: "0 0 4px" },
 }
 
 export default function Login() {
+  const location = useLocation()
+  const nav = useNavigate()
+  const reason = location.state?.reason
+
   const [mode, setMode]     = useState("in")   // "in" = sign in, "up" = sign up
   const [name, setName]     = useState("")
   const [pw, setPw]         = useState("")
@@ -76,8 +85,12 @@ export default function Login() {
 
   return (
     <div style={S.page}>
+      <button style={S.back} onClick={() => nav("/")}>‹ Back</button>
+
       <h1 style={S.logo}>Show Up</h1>
       <p style={S.sub}>Post what you're doing. See who turns up.</p>
+
+      {reason && <p style={S.reason}>{reason}</p>}
 
             <div style={S.field}>
         <label style={S.label}>Your name</label>

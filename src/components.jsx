@@ -141,6 +141,17 @@ export function BackIcon() {
 }
 
 export function ProfileIcon({ me }) {
+  // not signed in — tell them plainly, and point at the login screen
+  // instead of resolving to a bogus /p/ (no id) route.
+  if (!me) {
+    return (
+      <Link className="icon" to="/login"
+            state={{ reason: "You're not logged in. Please log in." }}
+            aria-label="Not logged in — log in">
+        ?
+      </Link>
+    )
+  }
   return (
     <Link className="icon" to={`/p/${me?.id ?? ""}`}>
       {me?.avatar ? <img src={me.avatar} alt="" /> : (me?.name?.[0] ?? "·")}
@@ -150,6 +161,17 @@ export function ProfileIcon({ me }) {
 
 export function AddIcon() {
   return <Link className="icon brand" to="/host">+</Link>
+}
+
+/* shown instead of AddIcon on the home screen when nobody's signed in —
+   hosting (and joining) needs an account, browsing doesn't. */
+export function SignInIcon() {
+  return (
+    <Link className="icon brand signin" to="/login"
+          state={{ reason: "Log in to host an activity." }}>
+      Sign in
+    </Link>
+  )
 }
 
 /* ---------- 8. Empty state ---------- */

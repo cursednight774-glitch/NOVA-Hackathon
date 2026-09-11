@@ -98,7 +98,7 @@ export default function Stubs() {
             <div className="bootload" style={{ minHeight: 200 }}><span className="spin" /></div>
           )}
           {!rendering && imgUrl && (
-            <img src={imgUrl} alt={open.title} style={{ width: 320, maxWidth: "100%", borderRadius: 26 }} />
+            <img src={imgUrl} alt={open.title} style={{ width: "auto", maxWidth: "100%", maxHeight: "55vh", borderRadius: 26, objectFit: "contain" }} />
           )}
 
           <button className="btn" style={{ maxWidth: 320 }} onClick={download} disabled={!imgUrl}>

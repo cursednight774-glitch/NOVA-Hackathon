@@ -92,10 +92,10 @@ a { color: inherit; text-decoration: none; }
 .hostline .rec { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ok); }
 
 .railwrap { position: relative; }
-.rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
+.rail { display: flex; align-items: start; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
         margin: 0 -14px; padding: 0 14px 4px; scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
-.rail > * { scroll-snap-align: center; flex: none; width: 65%; }
+.rail > * { scroll-snap-align: center; flex: none; width: 55%; }
 
 /* prev/next arrows — desktop/trackpad only; phones already swipe */
 .railnav { display: none; }
@@ -110,7 +110,7 @@ a { color: inherit; text-decoration: none; }
   .railnav.next { right: 4px; }
 }
 
-.poster { position: relative; aspect-ratio: 3/4; border-radius: var(--r); overflow: hidden;
+.poster { position: relative; aspect-ratio: 4/5; border-radius: var(--r); overflow: hidden;
           display: flex; flex-direction: column; justify-content: flex-end;
           padding: clamp(8px, 3.5vw, 16px); color: #FFFFFF; background: #000; }
 .poster.wide { aspect-ratio: 16/9; }

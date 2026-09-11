@@ -4,6 +4,8 @@
 import { useState } from "react"
 import { signIn, signUp } from "../auth.js"
 import { loadMe } from "../api.js"
+import Privacy from "./Privacy.jsx"
+import Terms from "./Terms.jsx"
 
 const COURSES = ["CSE", "ISE", "AIML", "ECE", "EEE", "ME", "CV", "MBA", "MCA"]
 const YEARS = {
@@ -46,6 +48,8 @@ export default function Login() {
   const [year, setYear]     = useState("")
   const [msg, setMsg]       = useState("")
   const [busy, setBusy]     = useState(false)
+  const [showPrivacy, setShowPrivacy] = useState(false)
+  const [showTerms, setShowTerms]     = useState(false)
 
   async function go() {
     if (!name.trim() || !pw) return setMsg("Fill in both fields.")
@@ -66,6 +70,9 @@ export default function Login() {
     // pick up the new ME. Don't change it to navigate().
     window.location.href = "/"
   }
+
+  if (showPrivacy) return <Privacy onBack={() => setShowPrivacy(false)} />
+  if (showTerms)   return <Terms onBack={() => setShowTerms(false)} />
 
   return (
     <div style={S.page}>
@@ -119,6 +126,22 @@ export default function Login() {
               disabled={busy} onClick={go}>
         {busy ? "…" : mode === "in" ? "Sign in" : "Create account"}
       </button>
+
+      {mode === "up" && (
+        <p style={{ ...S.hint, textAlign: "center" }}>
+          By creating an account, you agree to our{" "}
+          <button style={{ ...S.link, width: "auto", padding: 0, display: "inline",
+                            textDecoration: "underline" }}
+                  onClick={() => setShowTerms(true)}>
+            Terms of Service
+          </button>{" "}and{" "}
+          <button style={{ ...S.link, width: "auto", padding: 0, display: "inline",
+                            textDecoration: "underline" }}
+                  onClick={() => setShowPrivacy(true)}>
+            Privacy Policy
+          </button>.
+        </p>
+      )}
 
       <button style={S.link}
               onClick={() => { setMode(m => (m === "in" ? "up" : "in")); setMsg("") }}>

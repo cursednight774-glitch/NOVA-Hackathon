@@ -8,6 +8,8 @@ import Host        from "./screens/Host.jsx"
 import Stubs       from "./screens/Stubs.jsx"
 import Disputes    from "./screens/Disputes.jsx"
 import EditProfile from "./screens/EditProfile.jsx"
+import Privacy     from "./screens/Privacy.jsx"
+import Terms       from "./screens/Terms.jsx"
 
 export default function App() {
   // main.jsx runs loadMe() before rendering, so ME is already settled here.
@@ -24,6 +26,8 @@ export default function App() {
           <Route path="/stubs"     element={<Stubs />} />
           <Route path="/disputes"  element={<Disputes />} />
           <Route path="/edit"      element={<EditProfile />} />
+          <Route path="/privacy"   element={<Privacy />} />
+          <Route path="/terms"     element={<Terms />} />
           <Route path="*"          element={<Navigate to="/" replace />} />
         </Routes>
       </div>

@@ -163,6 +163,7 @@ a { color: inherit; text-decoration: none; }
                  color: var(--ink-3); font-weight: 800; margin-bottom: 4px; }
 .field input, .field select { width: 100%; min-width: 0; border: 0; outline: none;
          background: transparent; font-size: 15px; font-weight: 600; color: var(--ink); padding: 0; }
+.field select option { background: var(--surface); color: var(--ink); }
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 /* without this, a datetime-local input refuses to shrink and the page
    scrolls sideways on a phone. It is not optional. */

@@ -45,22 +45,19 @@ export default function Home() {
   useEffect(() => { load() }, [filter])
 
   // which card is centred right now — drives the host line and the dots
+  // card pitch = 240px width + 12px gap = 252px
   function onScroll() {
     const el = railRef.current
     if (!el) return
-    const card = el.scrollWidth / Math.max(list.length, 1)
-    setIndex(Math.round(el.scrollLeft / card))
+    setIndex(Math.round(el.scrollLeft / 252))
   }
 
-  // scroll the rail to a given card index — used by the arrow buttons and
-  // the keyboard left/right handler, since dragging/swiping isn't available
-  // on a laptop trackpad the way it is on a phone.
+  // scroll the rail to a given card index
   function goTo(i) {
     const el = railRef.current
     if (!el || !list.length) return
     const clamped = Math.max(0, Math.min(i, list.length - 1))
-    const card = el.scrollWidth / list.length
-    el.scrollTo({ left: card * clamped, behavior: "smooth" })
+    el.scrollTo({ left: 252 * clamped, behavior: "smooth" })
   }
 
   // left/right arrow keys browse the rail, same as swiping on a phone.

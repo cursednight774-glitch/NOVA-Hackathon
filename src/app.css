@@ -91,12 +91,28 @@ a { color: inherit; text-decoration: none; }
 .hostline .nm  { font-weight: 800; font-size: 14px; }
 .hostline .rec { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--ok); }
 
-.railwrap { position: relative; }
-.rail { display: flex; align-items: start; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
-        margin: 0 -14px; padding: 0 14px 4px; scrollbar-width: none; }
-.rail::-webkit-scrollbar { display: none; }
-.rail > * { scroll-snap-align: center; flex: none; width: 45%; }
-.rail::after { content: ""; flex: none; width: 35vw; }
+/* --- poster carousel rail ---
+   FORCED medium 9:16 poster cards with peek-through scroll.
+   - First card:  peek of second card visible on the right
+   - Middle cards: peeks of both neighbors
+   - Last card:   peek of previous card on the left
+   All sizes use !important to prevent any override.                     */
+.railwrap { position: relative; overflow: hidden !important; }
+.rail { display: flex !important; align-items: start !important; gap: 12px !important;
+        overflow-x: auto !important; overflow-y: hidden !important;
+        scroll-snap-type: x mandatory !important;
+        margin: 0 -14px !important; padding: 0 14px 4px !important;
+        scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important; }
+.rail::-webkit-scrollbar { display: none !important; }
+
+/* FORCE every rail child to exactly 240px wide — no grow, no shrink, no exceptions */
+.rail > * { scroll-snap-align: start !important; flex: 0 0 240px !important;
+            width: 240px !important; max-width: 240px !important; min-width: 240px !important; }
+
+/* trailing spacer so the LAST card can scroll fully into the left position,
+   leaving a peek of the previous card visible. calc = viewport - card - padding */
+.rail::after { content: "" !important; flex: 0 0 calc(100% - 240px - 14px) !important;
+               width: calc(100% - 240px - 14px) !important; }
 
 /* prev/next arrows — desktop/trackpad only; phones already swipe */
 .railnav { display: none; }
@@ -111,36 +127,42 @@ a { color: inherit; text-decoration: none; }
   .railnav.next { right: 4px; }
 }
 
-.poster { position: relative; aspect-ratio: 9/16; border-radius: var(--r); overflow: hidden;
+/* FORCE poster to exactly 240 × 427 px (9:16 ratio). !important on everything. */
+.poster { position: relative; width: 240px !important; height: 427px !important;
+          max-width: 240px !important; max-height: 427px !important;
+          min-width: 240px !important; min-height: 427px !important;
+          aspect-ratio: 9 / 16 !important; border-radius: var(--r); overflow: hidden;
           display: flex; flex-direction: column; justify-content: flex-end;
-          padding: clamp(8px, 3.5vw, 16px); color: #FFFFFF; background: #000; }
-.poster.wide { aspect-ratio: 16/9; }
+          padding: 10px; color: #FFFFFF; background: #000; }
+.poster.wide { aspect-ratio: 16/9 !important; width: 100% !important; height: auto !important;
+               max-width: 100% !important; max-height: none !important;
+               min-width: 0 !important; min-height: 0 !important; }
 .poster .bg   { position: absolute; inset: 0; background-size: cover; background-position: center; }
 .poster .bg.sport  { background-color: var(--brand); }
 .poster .bg.study  { background-color: var(--study); }
 .poster .bg.social { background-color: var(--social); }
 .poster .scrim { position: absolute; inset: 0;
   background: linear-gradient(180deg, rgba(0,0,0,.35) 0%, rgba(0,0,0,0) 34%, rgba(0,0,0,.82) 100%); }
-.poster .top { position: absolute; top: clamp(6px, 2.6vw, 12px); left: clamp(7px, 3vw, 14px); right: clamp(7px, 3vw, 14px);
+.poster .top { position: absolute; top: 8px; left: 10px; right: 10px;
                display: flex; justify-content: space-between; align-items: flex-start; }
-.poster .cat { font-family: var(--mono); font-size: clamp(8px, 2.6vw, 10px); letter-spacing: .16em;
+.poster .cat { font-family: var(--mono); font-size: 9px; letter-spacing: .16em;
                text-transform: uppercase; background: rgba(255,255,255,.22);
-               padding: clamp(3px, 1.2vw, 4px) clamp(6px, 2.4vw, 9px); border-radius: 999px; white-space: nowrap; }
-.posterhost { display: flex; align-items: center; gap: 6px; color: #FFFFFF;
+               padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.posterhost { display: flex; align-items: center; gap: 5px; color: #FFFFFF;
               text-shadow: 0 1px 3px rgba(0,0,0,.6); }
-.posterhost .nm { font-weight: 800; font-size: clamp(11px, 3.3vw, 13px); }
-.posterhost .rec { font-family: var(--mono); font-size: clamp(8px, 2.6vw, 10px); font-weight: 700; color: var(--ok); }
-.poster .cnt { font-family: var(--mono); font-size: clamp(9px, 2.8vw, 11px); font-weight: 600;
-               background: rgba(0,0,0,.45); padding: clamp(3px, 1.2vw, 4px) clamp(6px, 2.4vw, 9px); border-radius: 999px; white-space: nowrap; }
+.posterhost .nm { font-weight: 800; font-size: 12px; }
+.posterhost .rec { font-family: var(--mono); font-size: 9px; font-weight: 700; color: var(--ok); }
+.poster .cnt { font-family: var(--mono); font-size: 10px; font-weight: 600;
+               background: rgba(0,0,0,.45); padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
 .poster .txt  { position: relative; }
-.poster .name { font-size: clamp(16px, 6vw, 23px); font-weight: 800; letter-spacing: -.035em;
-                line-height: 1.02; text-transform: uppercase; }
+.poster .name { font-size: 16px; font-weight: 800; letter-spacing: -.035em;
+                line-height: 1.05; text-transform: uppercase; }
 .poster.wide .name { font-size: clamp(15px, 5.2vw, 20px); }
-.poster .when { font-family: var(--mono); font-size: clamp(9px, 2.8vw, 11px); letter-spacing: .08em;
-                text-transform: uppercase; margin-top: clamp(4px, 1.8vw, 8px); line-height: 1.5; opacity: .92; }
-.poster .go   { position: absolute; right: clamp(7px, 3vw, 14px); bottom: clamp(7px, 3vw, 14px); background: #FFFFFF;
-                color: #17171F; font-size: clamp(10px, 3.3vw, 13px); font-weight: 800;
-                padding: clamp(5px, 2vw, 8px) clamp(9px, 3.8vw, 16px); border-radius: 999px; white-space: nowrap; }
+.poster .when { font-family: var(--mono); font-size: 9px; letter-spacing: .08em;
+                text-transform: uppercase; margin-top: 5px; line-height: 1.5; opacity: .92; }
+.poster .go   { position: absolute; right: 10px; bottom: 10px; background: #FFFFFF;
+                color: #17171F; font-size: 11px; font-weight: 800;
+                padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
 
 .dots { display: flex; gap: 5px; justify-content: center; }
 .dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--line-strong); }

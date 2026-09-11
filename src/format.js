@@ -10,7 +10,7 @@ export const YEARS = {
   3: "3rd year (Junior)",
   4: "4th year (Senior)",
 }
-export const COURSES = ["CSE", "ISE", "AIML", "ECE", "EEE", "ME", "CV", "MBA", "MCA"]
+export const COURSES = ["CSE", "AIML", "ECE", "EEE", "ME", "CV", "MBA", "MCA", "RA", "CSBS", "CSDS", "BBA", "BCA"]
 
 export function time(d) {
   let hrs = d.getHours(), m = d.getMinutes()

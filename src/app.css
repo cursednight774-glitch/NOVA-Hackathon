@@ -21,7 +21,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- app shell ---------- */
 .app      { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--ground);
-            overflow-x: clip; }
+            overflow-x: hidden; }
 
 .bootload { min-height: 100dvh; display: grid; place-items: center; background: var(--ground); }
 .bootload .spin { width: 30px; height: 30px; border-radius: 50%;
@@ -97,13 +97,14 @@ a { color: inherit; text-decoration: none; }
    - Middle cards: peeks of both neighbors
    - Last card:   fully visible, peek of previous on the left
    All sizes use !important to prevent any override.                     */
-.railwrap { position: relative; }
+.railwrap { position: relative; min-width: 0 !important; overflow: hidden !important; }
 .rail { display: flex !important; align-items: start !important; gap: 12px !important;
-        overflow-x: auto !important; overflow-y: hidden !important;
+        overflow-x: scroll !important; overflow-y: hidden !important;
         scroll-snap-type: x mandatory !important;
         margin: 0 !important; padding: 0 0 4px !important;
         scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important;
-        touch-action: pan-x !important; }
+        touch-action: pan-x !important;
+        min-width: 0 !important; width: 100% !important; }
 .rail::-webkit-scrollbar { display: none !important; }
 
 /* FORCE every rail child to exactly 240px wide — no grow, no shrink, no exceptions */

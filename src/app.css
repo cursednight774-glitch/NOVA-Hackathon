@@ -21,7 +21,7 @@ a { color: inherit; text-decoration: none; }
 
 /* ---------- app shell ---------- */
 .app      { max-width: 480px; margin: 0 auto; min-height: 100dvh; background: var(--ground);
-            overflow-x: hidden; }
+            overflow-x: clip; }
 
 .bootload { min-height: 100dvh; display: grid; place-items: center; background: var(--ground); }
 .bootload .spin { width: 30px; height: 30px; border-radius: 50%;
@@ -102,7 +102,8 @@ a { color: inherit; text-decoration: none; }
         overflow-x: auto !important; overflow-y: hidden !important;
         scroll-snap-type: x mandatory !important;
         margin: 0 !important; padding: 0 0 4px !important;
-        scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important; }
+        scrollbar-width: none !important; -webkit-overflow-scrolling: touch !important;
+        touch-action: pan-x !important; }
 .rail::-webkit-scrollbar { display: none !important; }
 
 /* FORCE every rail child to exactly 240px wide — no grow, no shrink, no exceptions */

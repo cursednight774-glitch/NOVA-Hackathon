@@ -91,7 +91,7 @@ a { color: inherit; text-decoration: none; }
 .rail { display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory;
         margin: 0 -14px; padding: 0 14px 4px; scrollbar-width: none; }
 .rail::-webkit-scrollbar { display: none; }
-.rail > * { scroll-snap-align: center; flex: none; width: calc(100% - 68px); }
+.rail > * { scroll-snap-align: center; flex: none; width: 100%; }
 
 .poster { position: relative; aspect-ratio: 3/4.3; border-radius: var(--r); overflow: hidden;
           display: flex; flex-direction: column; justify-content: flex-end;

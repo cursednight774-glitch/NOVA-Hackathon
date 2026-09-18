@@ -12,9 +12,11 @@ From sports and study sessions to photo walks and social activities, Show Up put
 
 **[View the GitHub Repository](https://github.com/cursednight774-glitch/NOVA-Hackathon)**
 
-<img width="716" height="1376" alt="image" src="https://github.com/user-attachments/assets/58dc1c3a-a9ee-4c73-881b-2cb44f6bbab4" />
-<img width="720" height="1364" alt="image" src="https://github.com/user-attachments/assets/bac2de27-5b24-4dba-97dd-53e8adacd253" />
-<img width="716" height="1360" alt="image" src="https://github.com/user-attachments/assets/d3db72da-2928-4a95-a975-5ee6819ebba9" />
+<p align="center">
+  <img width="250" src="https://github.com/user-attachments/assets/58dc1c3a-a9ee-4c73-881b-2cb44f6bbab4" />
+  <img width="250" src="https://github.com/user-attachments/assets/bac2de27-5b24-4dba-97dd-53e8adacd253" />
+  <img width="250" src="https://github.com/user-attachments/assets/d3db72da-2928-4a95-a975-5ee6819ebba9" />
+</p>
 
 ---
 
